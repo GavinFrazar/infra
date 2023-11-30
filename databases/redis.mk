@@ -13,4 +13,4 @@ $(DB)-connect:
 	tsh db connect --db-user="alice" self-hosted-redis
 
 $(DB)-proxy:
-	tsh proxy db -d --tunnel --db-user="alice" -p 6379 self-hosted-redis
+	tsh proxy db --tunnel --db-user="alice" -p 6379 self-hosted-redis

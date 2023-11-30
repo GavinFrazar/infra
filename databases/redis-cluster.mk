@@ -42,4 +42,4 @@ $(DB)-connect:
 	tsh db connect --db-user="alice" self-hosted-redis-cluster
 
 $(DB)-proxy:
-	tsh proxy db -d --tunnel --db-user="alice" -p 7001 self-hosted-redis-cluster
+	tsh proxy db --tunnel --db-user="alice" -p 7001 self-hosted-redis-cluster

@@ -13,4 +13,4 @@ $(DB)-connect:
 	tsh db connect --db-user="alice" self-hosted-elasticsearch
 
 $(DB)-proxy:
-	tsh proxy db -d --tunnel --db-user="alice" -p 9200 self-hosted-elasticsearch
+	tsh proxy db --tunnel --db-user="alice" -p 9200 self-hosted-elasticsearch

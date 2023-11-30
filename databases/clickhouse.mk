@@ -14,7 +14,7 @@ $(DB)-connect:
 
 .PHONY: $(DB)-proxy
 $(DB)-proxy:
-	tsh proxy db -d --db-user="alice" --tunnel -p 8443 self-hosted-clickhouse-http
+	tsh proxy db --db-user="alice" --tunnel -p 8443 self-hosted-clickhouse-http
 
 .PHONY: $(DB)-test-http
 $(DB)-test-http:
