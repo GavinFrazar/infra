@@ -1,0 +1,7 @@
+**/build
+terraform/.terraform
+databases/sync
+databases/teleport-databases
+databases/compose.yaml
+databases/config.tar.gz
+databases/teleport.yaml
