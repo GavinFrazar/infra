@@ -13,4 +13,5 @@ $(BUILD)/certs:
 
 .PHONY: $(DB)-connect
 $(DB)-connect:
+	@echo "Hint: any password will work."
 	tsh db connect --db-user="cassandra" --db-name="cassandra" self-hosted-scylladb
