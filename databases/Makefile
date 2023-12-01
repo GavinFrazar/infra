@@ -12,7 +12,7 @@ export SSH_HOST
 SIGN_FLAGS = --overwrite --host=$(HOST),localhost,127.0.0.1 -o $@/out --ttl=2190h > $@/tctl.result
 export SIGN_FLAGS
 
-DATABASES := $(shell fd --type directory --min-depth=1 --max-depth=1 . -x basename {})
+DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x basename {})
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
 
 COMPOSE_UP_CMD := docker compose up --build -d
@@ -42,7 +42,7 @@ sync: compose.yaml config.tar.gz
 compose.yaml: compose.tpl.yaml
 	@envsubst < $< > $@
 
-config.tar.gz: $(shell fd . $(DATABASES))
+config.tar.gz: $(shell fd -HI . $(DATABASES))
 	@tar czf config.tar.gz $(DATABASES)
 
 .PHONY: ssh
