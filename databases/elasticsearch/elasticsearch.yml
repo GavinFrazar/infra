@@ -1,0 +1,15 @@
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+xpack.license.self_generated.type: trial
+xpack.security.http.ssl:
+  certificate_authorities: /usr/share/elasticsearch/config/certs/out.cas
+  certificate: /usr/share/elasticsearch/config/certs/out.crt
+  key: /usr/share/elasticsearch/config/certs/out.key
+  enabled: true
+  client_authentication: optional
+  verification_mode: certificate
+
+xpack.security.authc.realms.pki.pki1:
+  order: 1
+  enabled: true
+  certificate_authorities: /usr/share/elasticsearch/config/certs/out.cas

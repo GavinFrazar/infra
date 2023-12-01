@@ -1,0 +1,170 @@
+---
+kind: db
+version: v3
+metadata:
+  name: "debug-db"
+  description: "Debug database that will print certs presented to during agent connection"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "mongodb"
+  uri: "127.0.0.1:8088"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-postgres"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "postgres"
+  uri: "${HOST}:5432"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-mysql"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "mysql"
+  uri: "${HOST}:3306"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-mariadb"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "mysql"
+  # mysqld is already on 3306, hence we 3307 for mariadb.
+  uri: "${HOST}:3307"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-mongodb"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "mongodb"
+  uri: "${HOST}:27017"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-oracle"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "oracle"
+  uri: "${HOST}:2484"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-cassandra"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "cassandra"
+  uri: "${HOST}:9042"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-scylladb"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "cassandra"
+  # cassandra is already using 9042, hence we use 9043 for scylla.
+  uri: "${HOST}:9043"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-cockroach"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "cockroachdb"
+  uri: "${HOST}:26257"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-clickhouse-http"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "clickhouse-http"
+  uri: "https://${HOST}:8443"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-clickhouse-native"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "clickhouse"
+  uri: "clickhouse://${HOST}:9440"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-elasticsearch"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "elasticsearch"
+  uri: "${HOST}:9200"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-redis"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "redis"
+  uri: "${HOST}:6379"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-redis-cluster"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "redis"
+  uri: "redis://${HOST}:7001?mode=cluster"

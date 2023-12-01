@@ -1,0 +1,7 @@
+client_encryption_options:
+  enabled: true
+  optional: false
+  certificate: /certs/out.crt
+  keyfile: /certs/out.key
+  truststore: /certs/out.cas
+  require_client_auth: True
