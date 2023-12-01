@@ -12,11 +12,14 @@ $(DB)-down:
 		redis-node-1 redis-node-2 redis-node-3 \
 		redis-node-4 redis-node-5 redis-node-6
 
+$(BUILD):
+	@mkdir -p $@
+
 .PRECIOUS: $(BUILD)/node-%
 $(BUILD)/node-%: $(BUILD)/node-%/certs $(BUILD)/node-%/redis.conf $(BUILD)/node-%/users.acl $(BUILD)/node-%/Dockerfile ;
 
 .PRECIOUS: $(BUILD)/node-%/certs
-$(BUILD)/node-%/certs:
+$(BUILD)/node-%/certs: | $(BUILD)
 	@mkdir -p $@
 	tctl auth sign \
 		--format=redis \
@@ -26,17 +29,17 @@ $(BUILD)/node-%/certs:
 		--ttl=2190h
 
 .PRECIOUS: $(BUILD)/node-%/redis.conf
-$(BUILD)/node-%/redis.conf: $(DB)/common-redis.conf
+$(BUILD)/node-%/redis.conf: $(DB)/common-redis.conf | $(BUILD)
 	@cp $< $@
-	echo "tls-port 700$*" >> $@
-	echo "cluster-port 1700$*" >> $@
+	@echo "tls-port 700$*" >> $@
+	@echo "cluster-port 1700$*" >> $@
 
 .PRECIOUS: $(BUILD)/node-%/users.acl
-$(BUILD)/node-%/users.acl: $(DB)/users.acl
+$(BUILD)/node-%/users.acl: $(DB)/users.acl | $(BUILD)
 	@cp $< $@
 
 .PRECIOUS: $(BUILD)/node-%/Dockerfile
-$(BUILD)/node-%/Dockerfile: $(DB)/Dockerfile
+$(BUILD)/node-%/Dockerfile: $(DB)/Dockerfile | $(BUILD)
 	@cp $< $@
 
 .PHONY: $(DB)-connect
