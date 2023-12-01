@@ -3,6 +3,9 @@ DB = redis-cluster
 .PHONY: $(DB)
 $(DB): $(BUILD)/node-1 $(BUILD)/node-2 $(BUILD)/node-3 $(BUILD)/node-4 $(BUILD)/node-5 $(BUILD)/node-6 ;
 
+# override the default down action to shutdown all the nodes in the cluster,
+# otherwise `make redis-cluster-down` would only shutdown the redis-cluster container,
+# which is only used to configure the cluster on init.
 $(DB)-down:
 	@ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) \
 		redis-cluster \
