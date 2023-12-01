@@ -5,7 +5,6 @@ provider "aws" {
     tags = {
       "origin"                    = "gavin",
       "env"                       = "dev",
-      "teleport.dev/creator_type" = "terraform",
     }
   }
 }
