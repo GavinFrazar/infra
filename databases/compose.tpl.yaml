@@ -97,8 +97,6 @@ services:
       # - "CERTS_DIR=/usr/local/etc/redis/certs/"
     command: >
       redis-cli
-      -h 127.0.0.1
-      -p 7001
       --user alice
       --tls --insecure
       --cluster-yes
