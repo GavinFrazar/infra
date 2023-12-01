@@ -4,5 +4,8 @@ module "self-hosted-databases" {
   access_from_ip      = local.my_ip
 
   count = 1
+  additional_tags = {
+    Name = "self-hosted-databases"
+  }
 }
 
