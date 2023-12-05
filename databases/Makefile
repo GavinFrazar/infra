@@ -19,7 +19,8 @@ COMPOSE_UP_CMD := docker compose up --build -d
 COMPOSE_DOWN_CMD := docker compose down --remove-orphans
 
 .PHONY: all
-all: $(DATABASES) ;
+all: $(DATABASES)
+	@echo 'Hint: you can unconditionally make all target certs/config again with "make -B" (--always-make).'
 
 .PHONY: terraform-up
 terraform-up:
