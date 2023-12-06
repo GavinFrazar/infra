@@ -41,10 +41,11 @@ $(BUILD)/node-%/users.acl: $(DB)/users.acl | $(BUILD)
 $(BUILD)/node-%/Dockerfile: $(DB)/Dockerfile | $(BUILD)
 	@cp $< $@
 
-.PHONY: $(DB)-connect
-$(DB)-connect:
-	@echo "Hint: the password for user alice is: 'somepassword' ;)"
-	tsh db connect --db-user="alice" self-hosted-redis-cluster
-
 $(DB)-proxy:
 	tsh proxy db --tunnel --db-user="alice" -p 7001 self-hosted-redis-cluster
+
+.PHONY: $(DB)-hint
+$(DB)-hint: redis-hint ;
+
+$(DB)-tsh-db-connect-flags := --db-user="alice" self-hosted-redis-cluster
+$(DB)-test-input := echo 'auth alice somepassword'

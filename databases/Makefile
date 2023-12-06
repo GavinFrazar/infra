@@ -113,6 +113,17 @@ clean: $$(DATABASES_PAT)
 .PHONY: connect
 connect: $$(DATABASES_PAT) ;
 
+%-connect: %-hint
+	tsh db connect $($*-tsh-db-connect-flags)
+
+.PHONY: test
+test: $$(DATABASES_PAT) ;
+
+%-test: %-hint
+	$($*-test-input) | tsh db connect $($*-tsh-db-connect-flags) >/dev/null
+
+%-hint: force ;
+
 teleport.yaml: teleport.tpl.yaml
 	@envsubst < $< > $@
 

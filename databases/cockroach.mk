@@ -7,6 +7,5 @@ $(BUILD)/certs:
 	@mkdir -p $@/out
 	tctl auth sign --format=cockroachdb $(SIGN_FLAGS)
 
-.PHONY: $(DB)-connect
-$(DB)-connect:
-	tsh db connect --db-user="root" --db-name=defaultdb self-hosted-cockroach
+$(DB)-tsh-db-connect-flags := --db-user="root" --db-name=defaultdb self-hosted-cockroach
+$(DB)-test-input := echo '\du'

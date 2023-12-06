@@ -12,7 +12,9 @@ $(BUILD)/certs:
 	@mkdir -p $@
 	tctl auth sign --format=cassandra $(SIGN_FLAGS)
 
-.PHONY: $(DB)-connect
-$(DB)-connect:
+.PHONY: $(DB)-hint
+$(DB)-hint:
 	@echo "Hint: any password will work."
-	tsh db connect --db-user="cassandra" --db-name="cassandra" self-hosted-cassandra
+
+$(DB)-tsh-db-connect-flags := --db-user="cassandra" --db-name="cassandra" self-hosted-cassandra
+$(DB)-test-input := echo 'select now() from system.local;'
