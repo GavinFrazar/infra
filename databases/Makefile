@@ -28,7 +28,9 @@ SSH_USER ?= ubuntu
 # These vars should not be overridden.
 SSH_HOST := $(SSH_USER)@$(HOST)
 
-SIGN_FLAGS := --overwrite --host=$(HOST),localhost,127.0.0.1 -o $@/out --ttl=2190h > $@/tctl.result
+# this is intentionally a lazy var (= not :=) for use in a recipe where the auto
+# variable $@ is actually defined. Do not change.
+SIGN_FLAGS = --overwrite --host=$(HOST),localhost,127.0.0.1 -o $@/out --ttl=2190h > $@/tctl.result
 
 DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x basename {})
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
