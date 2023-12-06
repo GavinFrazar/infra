@@ -118,7 +118,7 @@ clean: $$(DATABASES_PAT)
 .PHONY: connect
 connect: $$(DATABASES_PAT) ;
 
-%-connect: %-hint
+%-connect: %-hint teleport-databases
 	tsh db connect $($*-tsh-db-connect-flags)
 
 .PHONY: test
