@@ -18,6 +18,7 @@ SIGN_FLAGS := --overwrite --host=$(HOST),localhost,127.0.0.1 -o $@/out --ttl=219
 
 DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x basename {})
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
+CONFIG_FILES := $(shell fd -HI . $(DATABASES))
 
 COMPOSE_UP_CMD := docker compose up --build -d
 COMPOSE_DOWN_CMD := docker compose down --remove-orphans
@@ -47,7 +48,7 @@ sync: compose.yaml config.tar.gz
 compose.yaml: compose.tpl.yaml
 	@envsubst < $< > $@
 
-config.tar.gz: $(shell fd -HI . $(DATABASES))
+config.tar.gz: $(CONFIG_FILES)
 	@tar czf config.tar.gz $(DATABASES)
 
 .PHONY: ssh
