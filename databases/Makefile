@@ -2,13 +2,19 @@
 SHELL := /bin/bash -eo pipefail
 export SHELL
 
+# The following variables can be overridden.
+# Use either an env var or "make [target...] <VAR>=<VALUE>"
 HOST ?= $(shell terraform -chdir=../terraform output -raw self-hosted-databases-ip)
 HOST := $(HOST)
 export HOST
 
-SSH_HOST := ubuntu@$(HOST)
+# the username to use when ssh'ing to HOST: SSH_USER=<username>
+SSH_USER ?= ubuntu
 
-SIGN_FLAGS = --overwrite --host=$(HOST),localhost,127.0.0.1 -o $@/out --ttl=2190h > $@/tctl.result
+# These vars should not be overridden.
+SSH_HOST := $(SSH_USER)@$(HOST)
+
+SIGN_FLAGS := --overwrite --host=$(HOST),localhost,127.0.0.1 -o $@/out --ttl=2190h > $@/tctl.result
 
 DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x basename {})
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
