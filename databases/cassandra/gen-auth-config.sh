@@ -4,6 +4,7 @@ set -eo pipefail
 build=cassandra/build
 password=$(grep keystore_password $build/certs/tctl.result | cut -d \" -f2)
 
+# See: https://cassandra.apache.org/doc/stable/cassandra/operating/security.html
 cat <<EOF > $build/auth-config.yaml
 client_encryption_options:
    enabled: true
