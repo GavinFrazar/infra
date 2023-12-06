@@ -1,45 +1,52 @@
 DB = redis-cluster
 
-$(DB): $(BUILD)/node-1/ $(BUILD)/node-2/ $(BUILD)/node-3/ $(BUILD)/node-4/ $(BUILD)/node-5/ $(BUILD)/node-6/ ;
+# a corresponding entry in compose.tpl.yaml needs to exist for each node.
+NODES := 1 2 3 4 5 6
+NODES_BUILD_PREFIX := $(BUILD)/node-
+NODES_BUILD := $(addprefix $(NODES_BUILD_PREFIX), $(NODES))
+NODES_CERTS := $(addsuffix /certs/, $(NODES_BUILD))
+NODES_CONF := $(addsuffix /redis.conf, $(NODES_BUILD))
+NODES_DOCKERFILE := $(addsuffix /Dockerfile, $(NODES_BUILD))
+NODES_USERS := $(addsuffix /users.acl, $(NODES_BUILD))
+
+$(DB): $(NODES_CERTS) $(NODES_CONF) $(NODES_DOCKERFILE) $(NODES_USERS);
+
+$(BUILD):
+	@mkdir -p $@
+
+$(NODES_BUILD): | $(BUILD)
+	@mkdir -p $@
+
+$(NODES_CERTS): NODE=$(patsubst $(NODES_BUILD_PREFIX)%/certs/,%,$@)
+$(NODES_CERTS): | $(NODES_BUILD)
+	@mkdir -p $@
+	tctl auth sign \
+		--format=redis \
+		--overwrite \
+		--host=redis-node-$(NODE),$(HOST),localhost,127.0.0.1 \
+		-o $@/out \
+		--ttl=2190h
+
+# 700x for port, 1700x for cluster port.
+$(NODES_CONF): PORT=700$(patsubst $(NODES_BUILD_PREFIX)%/redis.conf,%,$@)
+$(NODES_CONF): CLUSTER_PORT=1$(PORT)
+$(NODES_CONF): $(DB)/common-redis.conf | $(NODES_BUILD)
+	@cp $< $@
+	@echo "port $(PORT)" >> $@
+	@echo "cluster-port $(CLUSTER_PORT)" >> $@
+
+$(NODES_DOCKERFILE): $(DB)/Dockerfile | $(NODES_BUILD)
+	@cp $< $@
+
+$(NODES_USERS): $(DB)/users.acl | $(NODES_BUILD)
+	@cp $< $@
 
 # override the default down action to shutdown all the nodes in the cluster,
 # otherwise `make redis-cluster-down` would only shutdown the redis-cluster container,
 # which is only used to configure the cluster on init.
 $(DB)-down:
-	@ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) \
-		redis-cluster \
-		redis-node-1 redis-node-2 redis-node-3 \
-		redis-node-4 redis-node-5 redis-node-6
-
-$(BUILD):
-	@mkdir -p $@
-
-.PRECIOUS: $(BUILD)/node-%/
-$(BUILD)/node-%/: $(BUILD)/node-%/certs/ $(BUILD)/node-%/redis.conf $(BUILD)/node-%/users.acl $(BUILD)/node-%/Dockerfile ;
-
-.PRECIOUS: $(BUILD)/node-%/certs/
-$(BUILD)/node-%/certs/: | $(BUILD)
-	@mkdir -p $@
-	tctl auth sign \
-		--format=redis \
-		--overwrite \
-		--host=redis-node-$*,$(HOST),localhost,127.0.0.1 \
-		-o $@/out \
-		--ttl=2190h
-
-.PRECIOUS: $(BUILD)/node-%/redis.conf
-$(BUILD)/node-%/redis.conf: $(DB)/common-redis.conf | $(BUILD)
-	@cp $< $@
-	@echo "tls-port 700$*" >> $@
-	@echo "cluster-port 1700$*" >> $@
-
-.PRECIOUS: $(BUILD)/node-%/users.acl
-$(BUILD)/node-%/users.acl: $(DB)/users.acl | $(BUILD)
-	@cp $< $@
-
-.PRECIOUS: $(BUILD)/node-%/Dockerfile
-$(BUILD)/node-%/Dockerfile: $(DB)/Dockerfile | $(BUILD)
-	@cp $< $@
+	ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) \
+		redis-cluster $(addprefix redis-node-, $(NODES))
 
 $(DB)-proxy:
 	tsh proxy db --tunnel --db-user="alice" -p 7001 self-hosted-redis-cluster
