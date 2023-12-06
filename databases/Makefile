@@ -1,3 +1,17 @@
+# enable second expansion so that $$(DATABASES_PAT) works as a shortcut
+# for creating helper commands like <db>-<cmd>, e.g. to create a target
+# command "cmd" for a specific db like "postgres", as in "make postgres-cmd",
+# define the "cmd" target like this:
+# cmd: $$(DATABASES_PAT)
+#
+# and another target like this:
+# %-cmd: force
+# 	...recipe...
+#	($* is the <db> name)
+#
+# or for <db> specific behavior:
+# postgres-cmd:
+# 	...recipe...
 .SECONDEXPANSION:
 SHELL := /bin/bash -eo pipefail
 export SHELL
