@@ -22,6 +22,9 @@ HOST ?= $(shell terraform -chdir=../terraform output -raw self-hosted-databases-
 HOST := $(HOST)
 export HOST
 
+# the remote host directory to store the docker compose file and all config.
+DOCKER_COMPOSE_PROJECT_DIR ?= ~/infra/databases
+
 # the username to use when ssh'ing to HOST: SSH_USER=<username>
 SSH_USER ?= ubuntu
 
@@ -36,8 +39,9 @@ DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x ba
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
 CONFIG_FILES := $(shell fd -HI . $(DATABASES))
 
-COMPOSE_UP_CMD := docker compose up --build -d
-COMPOSE_DOWN_CMD := docker compose down --remove-orphans
+DOCKER_COMPOSE := docker compose --project-directory "$(DOCKER_COMPOSE_PROJECT_DIR)"
+COMPOSE_UP_CMD := $(DOCKER_COMPOSE) up --build -d
+COMPOSE_DOWN_CMD := $(DOCKER_COMPOSE) down --remove-orphans -v
 
 .PHONY: all
 all: $(DATABASES)
@@ -57,8 +61,9 @@ list:
 	@echo $(DATABASES) | tr ' ' '\n' | sort
 
 sync: compose.yaml config.tar.gz
-	@scp compose.yaml config.tar.gz $(SSH_HOST):~
-	@ssh $(SSH_HOST) "mkdir -p ~/config && tar --warning=no-unknown-keyword -xzf ~/config.tar.gz -C ~/config"
+	@ssh $(SSH_HOST) "mkdir -p $(DOCKER_COMPOSE_PROJECT_DIR)/config"
+	@scp compose.yaml config.tar.gz $(SSH_HOST):$(DOCKER_COMPOSE_PROJECT_DIR)
+	@ssh $(SSH_HOST) "tar --warning=no-unknown-keyword -xzf $(DOCKER_COMPOSE_PROJECT_DIR)/config.tar.gz -C $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 	@touch sync
 
 compose.yaml: compose.tpl.yaml
@@ -73,19 +78,19 @@ ssh:
 
 .PHONY: logs
 logs:
-	@ssh -t $(SSH_HOST) docker compose logs --follow
+	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) logs --follow
 
 %-logs: force
-	@ssh -t $(SSH_HOST) docker compose logs --follow $*
+	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) logs --follow $*
 
 %-shell: force
-	@ssh -t $(SSH_HOST) docker compose exec -it $* bash
+	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -it $* bash
 
 %-root-shell: force
-	@ssh -t $(SSH_HOST) docker compose exec -it -u root $* bash
+	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -it -u root $* bash
 
 %-run: force
-	@ssh -t $(SSH_HOST) docker compose run -it --rm $* bash
+	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) run -it --rm $* bash
 
 .PHONY: up
 up: sync
@@ -103,7 +108,7 @@ down:
 
 .PHONY: clean
 clean: $$(DATABASES_PAT)
-	ssh $(SSH_HOST) "rm -rf ~/config"
+	ssh $(SSH_HOST) "rm -rf $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 	rm -f sync config.tar.gz teleport-databases teleport.yaml compose.yaml
 
 %-clean: force
