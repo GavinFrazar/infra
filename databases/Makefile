@@ -65,6 +65,9 @@ logs:
 %-shell: force
 	@ssh -t $(SSH_HOST) docker compose exec -it $* bash
 
+%-root-shell: force
+	@ssh -t $(SSH_HOST) docker compose exec -it -u root $* bash
+
 %-run: force
 	@ssh -t $(SSH_HOST) docker compose run -it --rm $* bash
 
