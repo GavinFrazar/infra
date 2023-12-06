@@ -1,6 +1,5 @@
 DB = redis-cluster
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/node-1 $(BUILD)/node-2 $(BUILD)/node-3 $(BUILD)/node-4 $(BUILD)/node-5 $(BUILD)/node-6 ;
 
 # override the default down action to shutdown all the nodes in the cluster,

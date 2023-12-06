@@ -1,6 +1,5 @@
 DB = clickhouse
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs ;
 
 $(BUILD)/certs:

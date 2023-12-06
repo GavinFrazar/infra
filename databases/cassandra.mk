@@ -1,6 +1,5 @@
 DB = cassandra
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/full-config.yaml $(BUILD)/certs ;
 
 $(BUILD)/full-config.yaml: $(DB)/default-config.yaml $(BUILD)/auth-config.yaml

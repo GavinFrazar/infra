@@ -1,6 +1,5 @@
 DB = redis
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs ;
 
 $(BUILD)/certs:

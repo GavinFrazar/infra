@@ -1,6 +1,5 @@
 DB = mongodb
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs ;
 
 $(BUILD)/certs:

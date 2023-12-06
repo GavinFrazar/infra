@@ -1,6 +1,5 @@
 DB = cockroach
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs;
 
 # tctl cockroach format expects a dir and our common sign flags use -o=out.

@@ -1,6 +1,5 @@
 DB = scylladb
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/full-config.yaml $(BUILD)/certs;
 
 $(BUILD)/full-config.yaml: $(DB)/default-config.yaml $(DB)/auth-config.yaml

@@ -1,6 +1,5 @@
 DB = elasticsearch
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs ;
 
 $(BUILD)/certs:

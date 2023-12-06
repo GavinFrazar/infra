@@ -1,6 +1,5 @@
 DB = oracle
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs ;
 
 $(BUILD)/certs:

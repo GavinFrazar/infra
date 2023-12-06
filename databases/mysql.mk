@@ -1,6 +1,5 @@
 DB = mysql
 
-.PHONY: $(DB)
 $(DB): $(BUILD)/certs ;
 
 $(BUILD)/certs:
