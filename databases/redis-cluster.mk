@@ -1,6 +1,6 @@
 DB = redis-cluster
 
-$(DB): $(BUILD)/node-1 $(BUILD)/node-2 $(BUILD)/node-3 $(BUILD)/node-4 $(BUILD)/node-5 $(BUILD)/node-6 ;
+$(DB): $(BUILD)/node-1/ $(BUILD)/node-2/ $(BUILD)/node-3/ $(BUILD)/node-4/ $(BUILD)/node-5/ $(BUILD)/node-6/ ;
 
 # override the default down action to shutdown all the nodes in the cluster,
 # otherwise `make redis-cluster-down` would only shutdown the redis-cluster container,
@@ -14,11 +14,11 @@ $(DB)-down:
 $(BUILD):
 	@mkdir -p $@
 
-.PRECIOUS: $(BUILD)/node-%
-$(BUILD)/node-%: $(BUILD)/node-%/certs $(BUILD)/node-%/redis.conf $(BUILD)/node-%/users.acl $(BUILD)/node-%/Dockerfile ;
+.PRECIOUS: $(BUILD)/node-%/
+$(BUILD)/node-%/: $(BUILD)/node-%/certs/ $(BUILD)/node-%/redis.conf $(BUILD)/node-%/users.acl $(BUILD)/node-%/Dockerfile ;
 
-.PRECIOUS: $(BUILD)/node-%/certs
-$(BUILD)/node-%/certs: | $(BUILD)
+.PRECIOUS: $(BUILD)/node-%/certs/
+$(BUILD)/node-%/certs/: | $(BUILD)
 	@mkdir -p $@
 	tctl auth sign \
 		--format=redis \
