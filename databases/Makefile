@@ -23,7 +23,7 @@ HOST := $(HOST)
 export HOST
 
 # the remote host directory to store the docker compose file and all config.
-DOCKER_COMPOSE_PROJECT_DIR ?= ~/infra/databases
+DOCKER_COMPOSE_PROJECT_DIR ?= ~
 
 # the username to use when ssh'ing to HOST: SSH_USER=<username>
 SSH_USER ?= ubuntu
