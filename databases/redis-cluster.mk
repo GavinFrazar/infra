@@ -18,49 +18,50 @@ $(NODES_BUILD): | $(BUILD)
 	@mkdir -p $@
 
 REDIS_ROOTCA_CERT := $(BUILD)/rootca/ca.crt
+ROOTCA_ACL := 644
 KEYLEN := 2048
 
 $(BUILD)/rootca: | $(BUILD)
 	@mkdir -p $@
-	openssl genrsa -out $@/ca.key $(KEYLEN)
-	@chmod 444 $@/ca.key
-	openssl req -config ssl.conf \
+	@openssl genrsa -out $@/ca.key $(KEYLEN) &>/dev/null
+	@chmod $(ROOTCA_ACL) $@/ca.key
+	@openssl req -config ssl.conf \
 		-key $@/ca.key -new -x509 -days 365 \
 		-sha256 -extensions v3_ca \
-		-subj "/CN=ca" -out $@/ca.crt
-	@chmod 444 $@/ca.crt
+		-subj "/CN=ca" -out $@/ca.crt &>/dev/null
+	@chmod $(ROOTCA_ACL) $@/ca.crt
 
 $(NODES_CERTS): NODE=$(patsubst $(NODES_BUILD_PREFIX)%/certs/,%,$@)
 $(NODES_CERTS): $(BUILD)/rootca | $(NODES_BUILD)
 	@mkdir -p $@
-	openssl genrsa -out $@/server.key $(KEYLEN)
-	chmod 444 $@/server.key
-	openssl req \
+	@openssl genrsa -out $@/server.key $(KEYLEN) &>/dev/null
+	@chmod $(ROOTCA_ACL) $@/server.key
+	@openssl req \
 		-config ssl.conf \
 		-subj "/CN=$(HOST)" \
 		-key $@/server.key \
-		-new -out $@/server.csr
-	openssl x509 \
+		-new -out $@/server.csr &>/dev/null
+	@openssl x509 \
 		-req \
 		-in $@/server.csr \
 	  	-CA $</ca.crt -CAkey $</ca.key \
 	  	-CAcreateserial -days 365 \
 	  	-out $@/server.crt \
-	  	-extfile ssl.conf -extensions redis_cluster_cert
-	openssl genrsa -out $@/client.key $(KEYLEN)
-	chmod 444 $@/client.key
-	openssl req \
+	  	-extfile ssl.conf -extensions redis_cluster_cert &>/dev/null
+	@openssl genrsa -out $@/client.key $(KEYLEN) &>/dev/null
+	@chmod $(ROOTCA_ACL) $@/client.key
+	@openssl req \
 		-config ssl.conf \
 		-subj "/CN=alice" \
 		-key $@/client.key \
-		-new -out $@/client.csr
-	openssl x509 \
+		-new -out $@/client.csr &>/dev/null
+	@openssl x509 \
 		-req \
 		-in $@/client.csr \
 		-CA $</ca.crt -CAkey $</ca.key \
 		-CAcreateserial -days 365 \
 		-out $@/client.crt \
-		-extfile ssl.conf -extensions redis_cluster_client_cert
+		-extfile ssl.conf -extensions redis_cluster_client_cert &>/dev/null
 	tctl auth sign \
 		--format=redis \
 		--overwrite \
@@ -77,6 +78,9 @@ $(NODES_CONF): $(DB)/common-redis.conf | $(NODES_BUILD)
 	@cp $< $@
 	@echo "tls-port $(PORT)" >> $@
 	@echo "cluster-port $(CLUSTER_PORT)" >> $@
+	@echo "cluster-announce-ip $(HOST)" >> $@
+	@echo "cluster-announce-tls-port $(PORT)" >> $@
+	@echo "cluster-announce-bus-port $(CLUSTER_PORT)" >> $@
 
 $(NODES_DOCKERFILE): $(DB)/Dockerfile | $(NODES_BUILD)
 	@cp $< $@
