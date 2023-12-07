@@ -60,6 +60,10 @@ terraform-down:
 list:
 	@echo $(DATABASES) | tr ' ' '\n' | sort
 
+.PHONY: show-host
+show-host:
+	@echo $(HOST)
+
 sync: compose.yaml config.tar.gz
 	@ssh $(SSH_HOST) "mkdir -p $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 	@scp compose.yaml config.tar.gz $(SSH_HOST):$(DOCKER_COMPOSE_PROJECT_DIR)
