@@ -81,20 +81,23 @@ ssh:
 	@ssh -t $(SSH_HOST)
 
 .PHONY: logs
-logs:
+logs: sync
 	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) logs --follow
 
-%-logs: force
+%-logs: force sync
 	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) logs --follow $*
 
-%-shell: force
+%-shell: force sync
 	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -it $* bash
 
-%-root-shell: force
+%-root-shell: force sync
 	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -it -u root $* bash
 
-%-run: force
+%-run: force sync
 	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) run -it --rm $* bash
+
+%-run-root: force sync
+	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) run -it --rm -u root $* bash
 
 .PHONY: up
 up: sync
@@ -104,10 +107,10 @@ up: sync
 	@ssh $(SSH_HOST) $(COMPOSE_UP_CMD) $*
 
 .PHONY: down
-down:
+down: sync
 	@ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD)
 
-%-down: force
+%-down: force sync
 	@ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) $*
 
 .PHONY: clean
@@ -119,6 +122,7 @@ clean: $$(DATABASES_PAT)
 
 .PHONY: clean-remote
 clean-remote:
+	rm -f sync
 	ssh $(SSH_HOST) "rm -rf $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 
 # connect, in sequence, to each database interactively.
