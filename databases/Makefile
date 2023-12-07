@@ -115,15 +115,16 @@ down: sync
 
 .PHONY: clean
 clean: $$(DATABASES_PAT)
-	rm -f sync config.tar.gz teleport-databases teleport.yaml compose.yaml
+	@rm -f sync teleport-databases
+	rm -f config.tar.gz teleport.yaml compose.yaml
 
 %-clean: force
 	rm -rf $*/build
 
 .PHONY: clean-remote
 clean-remote:
-	rm -f sync
-	ssh $(SSH_HOST) "rm -rf $(DOCKER_COMPOSE_PROJECT_DIR)/config"
+	@rm -f sync
+	ssh $(SSH_HOST) "rm -rf $(DOCKER_COMPOSE_PROJECT_DIR)/{config,config.tar.gz,compose.yaml}"
 
 # connect, in sequence, to each database interactively.
 .PHONY: connect
