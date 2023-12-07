@@ -133,7 +133,8 @@ test: $$(DATABASES_PAT) ;
 %-hint: force ;
 
 teleport.yaml: teleport.tpl.yaml
-	@envsubst < $< > $@
+	REDIS_CA_CERT=$$(./readca.sh $(REDIS_ROOTCA_CERT)) \
+	envsubst < $< > $@
 
 teleport-databases: teleport.yaml
 	tctl create -f teleport.yaml

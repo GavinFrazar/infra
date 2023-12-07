@@ -3,13 +3,19 @@ kind: db
 version: v3
 metadata:
   name: "debug-db"
-  description: "Debug database that will print certs presented to during agent connection"
+  description: "Example dyn database resource"
   labels:
     host: "mbp"
     env: "dev"
 spec:
-  protocol: "mongodb"
-  uri: "127.0.0.1:8088"
+  protocol: "redis"
+  uri: "redis://127.0.0.1:8088?mode=cluster"
+  tls:
+    # Point it to your Database CA PEM certificate.
+    ca_cert: "${REDIS_CA_CERT}"
+    # If your database certificate has an empty CN filed, you must change
+    # the TLS mode to only verify the CA.
+    mode: verify-ca
 ---
 kind: db
 version: v3
@@ -168,3 +174,9 @@ metadata:
 spec:
   protocol: "redis"
   uri: "redis://${HOST}:7001?mode=cluster"
+  tls:
+    # Point it to your Database CA PEM certificate.
+    ca_cert: "${REDIS_CA_CERT}"
+    # If your database certificate has an empty CN filed, you must change
+    # the TLS mode to only verify the CA.
+    mode: verify-ca

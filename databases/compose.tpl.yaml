@@ -82,7 +82,8 @@ services:
     ports:
       - "6379:6379"
   redis-cluster:
-    image: redis:latest
+    build:
+      context: config/redis-cluster/build/node-1
     depends_on:
       - redis-node-1
       - redis-node-2
@@ -94,11 +95,13 @@ services:
       - "redis-cluster"
     environment:
       - "REDISCLI_AUTH=somepassword"
-      # - "CERTS_DIR=/usr/local/etc/redis/certs/"
     command: >
       redis-cli
       --user alice
-      --tls --insecure
+      --tls
+      --cacert /usr/local/etc/redis/certs/rootca.crt
+      --cert /usr/local/etc/redis/certs/client.crt
+      --key /usr/local/etc/redis/certs/client.key
       --cluster-yes
       --cluster-replicas 1
       --cluster create
