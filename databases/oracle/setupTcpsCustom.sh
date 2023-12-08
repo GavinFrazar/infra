@@ -62,8 +62,12 @@ function crearteTeleportWallet() {
     return
   fi
   PASS=$(cat /certs/tctl.result | grep -o "pkcs12pwd\ .*" | cut -d' ' -f2)
-  orapki wallet create -wallet $WALLET_LOC -auto_login_only -with_trust_flags
-  orapki wallet import_pkcs12 -wallet $WALLET_LOC -auto_login_only -pkcs12file /certs/out.p12 -pkcs12pwd $PASS
+  WALLET_DIR=$WALLET_LOC
+  orapki wallet create -wallet "$WALLET_DIR" -auto_login_only
+  orapki wallet import_pkcs12 -wallet "$WALLET_DIR" -auto_login_only -pkcs12file /certs/out.p12 -pkcs12pwd "$PASS"
+  orapki wallet add -wallet "$WALLET_DIR" -trusted_cert -auto_login_only -cert /certs/out.ca-client-0.crt
+  orapki wallet add -wallet "$WALLET_DIR" -trusted_cert -auto_login_only -cert /certs/out.ca-client-1.crt
+  orapki wallet display -wallet "$WALLET_DIR" -complete
 }
 
 ensure_db_avaiability
