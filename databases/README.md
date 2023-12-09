@@ -7,18 +7,36 @@ makefile.
 
 The entire repo is based on a makefile, with db specific make targets in .mk include files.
 
-You need a running ec2 instance from terraform. Edit ../terraform files to provide your own config for terraform.
+### Use with EC2
+You can setup a running ec2 instance from terraform.
+Edit ../terraform files to provide your own config for terraform.
 Eventually I'll get around to decoupling this better, but for now the Makefile
 depends on that terraform module for getting the ec2 instance IP.
 
-1. run `make terraform-up` to create an ec2 instance with docker installed.
-2. login to your Teleport cluster
-3. run `make` to (re)-sign certs and (re)-generate all configs needed
+Then run `make terraform-up` to create an ec2 instance with docker installed.
+
+### Use without EC2
+You can alternatively set/export the following env vars to avoid all
+dependence on ec2/terraform:
+- `DOCKER_COMPOSE_PROJECT_DIR` is the directory to put all the config for docker compose project. Be sure to use single quotes for this, because you do not want the path expanded by your shell on your local box.
+- `HOST` is the remote/local host to ssh into, since this makefile works for local/remote dev. I suggest using a linux host, as there is no oracle db image for M1 macos.
+- `SSH_USER` is the remote host ssh user to login as.
+
+Example that I use to my thinkpad:
+
+```
+export DOCKER_COMPOSE_PROJECT_DIR='compose'
+export HOST=pop-os.local
+export SSH_USER=gavin
+```
+
+1. login to your Teleport cluster
+1. run `make` to (re)-sign certs and (re)-generate all configs needed
    You will need to accept adding the ec2 instance to  known_hosts on first use.
    You will need to wait a bit after the ec2 instance is available for init scripts to
    finish installing docker.
-4. run `make up` to sync all config to the ec2 instance and start all databases
-5. run `make <database>-connect` to connect to a db via teleport.
+1. run `make up` to sync all config to the ec2 instance and start all databases
+1. run `make <database>-connect` to connect to a db via teleport.
 
 ## Template files
 Don't try to edit these files:
