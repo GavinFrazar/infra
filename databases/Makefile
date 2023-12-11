@@ -137,7 +137,7 @@ connect: $$(DATABASES_PAT) ;
 test: $$(DATABASES_PAT) ;
 
 %-test: %-hint
-	$($*-test-input) | tsh db connect $($*-tsh-db-connect-flags) >/dev/null
+	$($*-test-input) | tsh db connect $($*-tsh-db-connect-flags)
 
 %-hint: force ;
 
