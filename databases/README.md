@@ -38,6 +38,12 @@ export SSH_USER=gavin
 1. run `make up` to sync all config to the ec2 instance and start all databases
 1. run `make <database>-connect` to connect to a db via teleport.
 
+Some databases take some time to fully setup and configure
+(oracle and mongo to name the worst offenders).
+If connecting fails, take a look at the logs, e.g. `make oracle-logs` or 
+`make logs` to see if the setup is failing. You probably just need to wait a
+bit for it to finish setup.
+
 ## Template files
 Don't try to edit these files:
 - teleport.yaml (built from teleport.tpl.yaml)
