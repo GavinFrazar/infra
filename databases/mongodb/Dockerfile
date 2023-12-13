@@ -1,4 +1,4 @@
-FROM mongo:latest
+FROM mongo:5
 
 COPY --chmod=400 build/certs/ /certs
 COPY --chmod=400 mongod.conf /etc/mongo/mongod.conf

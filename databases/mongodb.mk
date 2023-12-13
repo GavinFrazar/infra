@@ -1,3 +1,5 @@
+# this is for a simple, single instance of mongodb.
+# for a more complex multi-node version see mongodb-replicaset.
 DB = mongodb
 
 $(DB): $(BUILD)/certs ;

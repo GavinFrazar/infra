@@ -3,6 +3,8 @@ version: "3.9"
 networks:
   redis-cluster:
     driver: bridge
+  mongodb-replicaset:
+    driver: bridge
 
 services:
   postgres:
@@ -33,6 +35,56 @@ services:
       context: config/mongodb
     ports:
       - "27017:27017"
+  mongodb-replicaset:
+    build:
+      context: config/mongodb-replicaset/build/node-1
+    networks:
+      - "mongodb-replicaset"
+    depends_on:
+      - mongodb-replicaset-node-1
+      - mongodb-replicaset-node-2
+      - mongodb-replicaset-node-3
+    environment:
+      - "HOST=${HOST}"
+    command: >
+      bash /scripts/init.sh
+  mongodb-replicaset-node-1:
+    build:
+      context: config/mongodb-replicaset/build/node-1
+    networks:
+      - "mongodb-replicaset"
+    ports:
+      - "27021:27021"
+    command: >
+      --config /etc/mongo/mongod.conf
+      --replSet myReplicaSet
+      --bind_ip localhost,mongodb-replicaset-node-1
+      --port 27021
+  mongodb-replicaset-node-2:
+    build:
+      context: config/mongodb-replicaset/build/node-2
+    networks:
+      - "mongodb-replicaset"
+    ports:
+      - "27022:27022"
+    command: >
+      --config /etc/mongo/mongod.conf
+      --replSet myReplicaSet
+      --bind_ip localhost,mongodb-replicaset-node-2
+      --port 27022
+  mongodb-replicaset-node-3:
+    # image: "mongo:5"
+    build:
+      context: config/mongodb-replicaset/build/node-2
+    networks:
+      - "mongodb-replicaset"
+    ports:
+      - "27023:27023"
+    command: >
+      --config /etc/mongo/mongod.conf
+      --replSet myReplicaSet
+      --bind_ip localhost,mongodb-replicaset-node-3
+      --port 27023
   oracle:
     # container_name: oracle
     build:

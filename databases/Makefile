@@ -70,8 +70,11 @@ sync: compose.yaml config.tar.gz
 	@ssh $(SSH_HOST) "tar --warning=no-unknown-keyword -xzf $(DOCKER_COMPOSE_PROJECT_DIR)/config.tar.gz -C $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 	@touch sync
 
+# only specified env vars are substituted by envsubst.
+# this is because we do not want to expand everything that looks like
+# an env var in the template.
 compose.yaml: compose.tpl.yaml
-	@envsubst < $< > $@
+	@envsubst '$${HOST}=$(HOST)' < $< > $@
 
 config.tar.gz: $(CONFIG_FILES)
 	@tar czf config.tar.gz $(DATABASES)
@@ -143,6 +146,7 @@ test: $$(DATABASES_PAT) ;
 
 teleport.yaml: teleport.tpl.yaml
 	REDIS_CA_CERT=$$(./readca.sh $(REDIS_ROOTCA_CERT)) \
+	MONGO_CA_CERT=$$(./readca.sh $(MONGO_ROOTCA_CERT)) \
 	envsubst < $< > $@
 
 teleport-databases: teleport.yaml
@@ -210,6 +214,7 @@ include cockroach.mk
 include elasticsearch.mk
 include mariadb.mk
 include mongodb.mk
+include mongodb-replicaset.mk
 include mysql.mk
 include oracle.mk
 include postgres.mk
