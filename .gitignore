@@ -5,3 +5,4 @@ databases/teleport-databases
 databases/compose.yaml
 databases/config.tar.gz
 databases/teleport.yaml
+**/.log
