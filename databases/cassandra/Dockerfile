@@ -1,4 +1,4 @@
-FROM cassandra:latest
+FROM cassandra:4
 
 COPY --chmod=600 build/certs/ /certs/
 COPY --chmod=600 build/full-config.yaml /etc/cassandra/cassandra.yaml

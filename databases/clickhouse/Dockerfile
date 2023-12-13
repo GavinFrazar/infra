@@ -1,4 +1,4 @@
-FROM clickhouse/clickhouse-server:latest
+FROM clickhouse/clickhouse-server:23.11
 
 COPY --chmod=600 build/certs/ /certs/
 COPY --chmod=600 users.xml config.xml /etc/clickhouse-server/

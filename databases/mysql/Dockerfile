@@ -1,5 +1,5 @@
 # Use the official MySQL image as the base image
-FROM mysql:latest
+FROM mysql:8
 
 COPY --chmod=400 build/certs/ /certs/
 COPY --chmod=400 my.cnf /etc/mysql/conf.d/my.cnf

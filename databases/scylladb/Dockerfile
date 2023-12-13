@@ -1,4 +1,4 @@
-FROM scylladb/scylla:latest
+FROM scylladb/scylla:5.4
 
 COPY --chmod=600 build/certs/ /certs/
 COPY --chmod=600 build/full-config.yaml /etc/scylla/scylla.yaml
