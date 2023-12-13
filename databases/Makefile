@@ -190,11 +190,20 @@ debug-db:
 # Each included makefile just has to define DB, since BUILD is lazily evaluated.
 DB =
 BUILD = $(DB)/build
+NODES =
+NODES_BUILD_PREFIX = $(BUILD)/node-
+NODES_BUILD = $(addprefix $(NODES_BUILD_PREFIX), $(NODES))
+NODES_CERTS = $(addsuffix /certs, $(NODES_BUILD))
+NODES_DOCKERFILE = $(addsuffix /Dockerfile, $(NODES_BUILD))
 
 .PHONY: force
 force: ;
 Makefile: ;
 
+# common openssl rootca gen util
+include openssl_ca.mk
+
+# databases
 include cassandra.mk
 include clickhouse.mk
 include cockroach.mk

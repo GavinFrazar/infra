@@ -69,6 +69,18 @@ spec:
 kind: db
 version: v3
 metadata:
+  name: "self-hosted-mongodb-replicaset"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "mongodb"
+  uri: "${HOST}:27018"
+---
+kind: db
+version: v3
+metadata:
   name: "self-hosted-oracle"
   description: "Example dyn database resource"
   labels:
@@ -179,4 +191,4 @@ spec:
     ca_cert: "${REDIS_CA_CERT}"
     # If your database certificate has an empty CN filed, you must change
     # the TLS mode to only verify the CA.
-    mode: verify-ca
+    mode: verify-full
