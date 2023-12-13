@@ -79,9 +79,9 @@ $(NODES_USERS): $(DB)/users.acl | $(NODES_BUILD)
 # override the default down action to shutdown all the nodes in the cluster,
 # otherwise `make redis-cluster-down` would only shutdown the redis-cluster container,
 # which is only used to configure the cluster on init.
+$(DB)-down: CONTAINERS:=redis-cluster $(addprefix redis-node-, $(NODES))
 $(DB)-down:
-	ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) \
-		redis-cluster $(addprefix redis-node-, $(NODES))
+	ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) $(CONTAINERS)
 
 $(DB)-proxy:
 	tsh proxy db --tunnel --db-user="alice" -p 7001 self-hosted-redis-cluster
