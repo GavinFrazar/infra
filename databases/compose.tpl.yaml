@@ -75,7 +75,7 @@ services:
   mongodb-replicaset-node-3:
     # image: "mongo:5"
     build:
-      context: config/mongodb-replicaset/build/node-2
+      context: config/mongodb-replicaset/build/node-3
     networks:
       - "mongodb-replicaset"
     ports:
