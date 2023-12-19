@@ -82,7 +82,7 @@ $(NODES_CERTS): $(BUILD)/rootca | $(NODES_BUILD)
 	@cat $@/member.crt $@/member.key > $@/memberCertKey.pem
 	@cat $@/server.crt $@/server.key > $@/serverCertKey.pem
 	@cp $</ca.crt $@/ca.crt
-	@cat $@/out.cas $</ca.crt > $@/bundle.cas
+	@cat $</ca.crt $@/out.cas > $@/bundle.cas
 
 $(NODES_CONF): $(DB)/mongod-common.conf | $(NODES_BUILD)
 	@cp $< $@
