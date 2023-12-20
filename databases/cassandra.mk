@@ -17,4 +17,4 @@ $(DB)-hint:
 	@echo "Hint: any password will work."
 
 $(DB)-tsh-db-connect-flags := --db-user="cassandra" --db-name="cassandra" self-hosted-cassandra
-$(DB)-test-input := echo 'select now() from system.local;'
+$(DB)-test-input := echo 'describe keyspaces;'
