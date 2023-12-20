@@ -5,6 +5,8 @@ networks:
     driver: bridge
   mongodb-replicaset:
     driver: bridge
+  cassandra-cluster:
+    driver: bridge
 
 services:
   postgres:
@@ -107,6 +109,55 @@ services:
       context: config/scylladb
     ports:
     - "9043:9042"
+  cassandra-cluster:
+    # image: cassandra:4
+    build:
+      context: config/cassandra-cluster
+    depends_on:
+      # start this node second after the first is healthy.
+      cassandra-cluster-node:
+        condition: "service_healthy"
+    networks:
+      - cassandra-cluster
+    ports:
+      - "9051:9042"
+    healthcheck: &casscheck
+      test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+    environment: &cassenv # save env into "cassenv" to share it with all nodes
+      - "CASSANDRA_LISTEN_ADDRESS=auto" # the default. listen on container's ip.
+      - "CASSANDRA_CLUSTER_NAME=mycluster"
+      - "CASSANDRA_SEEDS=cassandra-cluster-seed"
+      - "CASSANDRA_DC=mars"
+      - "CASSANDRA_RACK=somerack"
+      - "CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch"
+      - "CASSANDRA_NUM_TOKENS=128"
+  cassandra-cluster-node:
+    # image: cassandra:4
+    build:
+      context: config/cassandra-cluster
+    depends_on:
+      # start this node second after the first is healthy.
+      cassandra-cluster-seed:
+        condition: "service_healthy"
+    networks:
+      - cassandra-cluster
+    ports:
+    - "9052:9042"
+    healthcheck: *casscheck # same health check for each node.
+    environment: *cassenv # same env for each node.
+  cassandra-cluster-seed:
+    # image: cassandra:4
+    build:
+      context: config/cassandra-cluster
+    networks:
+      - cassandra-cluster
+    ports:
+    - "9053:9042"
+    healthcheck: *casscheck # same health check for each node.
+    environment: *cassenv # same env for each node.
   cockroach:
     build:
       context: config/cockroach

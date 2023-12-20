@@ -209,6 +209,7 @@ include openssl_ca.mk
 
 # databases
 include cassandra.mk
+include cassandra-cluster.mk
 include clickhouse.mk
 include cockroach.mk
 include elasticsearch.mk

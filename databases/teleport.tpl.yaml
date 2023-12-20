@@ -95,6 +95,18 @@ spec:
 kind: db
 version: v3
 metadata:
+  name: "self-hosted-cassandra-cluster"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "cassandra"
+  uri: "${HOST}:9051"
+---
+kind: db
+version: v3
+metadata:
   name: "self-hosted-scylladb"
   description: "Example dyn database resource"
   labels:
