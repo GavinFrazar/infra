@@ -549,7 +549,7 @@ seed_provider:
     parameters:
       # seeds is actually a comma-delimited list of addresses.
       # Ex: "<ip1>,<ip2>,<ip3>"
-      - seeds: "172.17.0.4"
+      - seeds: "127.0.0.1:7000"
 
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
@@ -759,7 +759,7 @@ ssl_storage_port: 7001
 #
 # Setting listen_address to 0.0.0.0 is always wrong.
 #
-listen_address: 172.17.0.4
+listen_address: localhost
 
 # Set listen_address OR listen_interface, not both. Interfaces must correspond
 # to a single address, IP aliasing is not supported.
@@ -773,7 +773,7 @@ listen_address: 172.17.0.4
 
 # Address to broadcast to other Cassandra nodes
 # Leaving this blank will set it to the same value as listen_address
-broadcast_address: 172.17.0.4
+# broadcast_address: 1.2.3.4
 
 # When using multiple physical network interfaces, set this
 # to true to listen on broadcast_address in addition to
@@ -855,7 +855,7 @@ native_transport_allow_older_protocols: true
 # set broadcast_rpc_address to a value other than 0.0.0.0.
 #
 # For security reasons, you should not expose this port to the internet.  Firewall it if needed.
-rpc_address: 0.0.0.0
+rpc_address: localhost
 
 # Set rpc_address OR rpc_interface, not both. Interfaces must correspond
 # to a single address, IP aliasing is not supported.
@@ -871,7 +871,7 @@ rpc_address: 0.0.0.0
 # be set to 0.0.0.0. If left blank, this will be set to the value of
 # rpc_address. If rpc_address is set to 0.0.0.0, broadcast_rpc_address must
 # be set.
-broadcast_rpc_address: 172.17.0.4
+# broadcast_rpc_address: 1.2.3.4
 
 # enable or disable keepalive on rpc/native connections
 rpc_keepalive: true
@@ -1160,6 +1160,16 @@ slow_query_log_timeout: 500ms
 # bound (for example a few nodes with big files).
 # streaming_connections_per_host: 1
 
+# Settings for stream stats tracking; used by system_views.streaming table
+# How long before a stream is evicted from tracking; this impacts both historic and currently running
+# streams.
+# streaming_state_expires: 3d
+# How much memory may be used for tracking before evicting session from tracking; once crossed
+# historic and currently running streams maybe impacted.
+# streaming_state_size: 40MiB
+# Enable/Disable tracking of streaming stats
+# streaming_stats_enabled: true
+
 # Allows denying configurable access (rw/rr) to operations on configured ks, table, and partitions, intended for use by
 # operators to manage cluster health vs application access. See CASSANDRA-12106 and CEP-13 for more details.
 # partition_denylist_enabled: false
@@ -1319,6 +1329,11 @@ server_encryption_options:
   # Set to a valid keystore if internode_encryption is dc, rack or all
   keystore: conf/.keystore
   keystore_password: cassandra
+  # Configure the way Cassandra creates SSL contexts.
+  # To use PEM-based key material, see org.apache.cassandra.security.PEMBasedSslContextFactory
+  # ssl_context_factory:
+  #     # Must be an instance of org.apache.cassandra.security.ISslContextFactory
+  #     class_name: org.apache.cassandra.security.DefaultSslContextFactory
   # Verify peer server certificates
   require_client_auth: false
   # Set to a valid trustore if require_client_auth is true
@@ -1348,6 +1363,35 @@ server_encryption_options:
 #
 # Step 2: Set optional=false (or remove it) and if you generated truststores and want to use mutual
 # auth set require_client_auth=true. Restart all nodes
+client_encryption_options:
+  # Enable client-to-server encryption
+  enabled: false
+  # When set to true, encrypted and unencrypted connections are allowed on the native_transport_port
+  # This should _only be true_ while in unencrypted or transitional operation
+  # optional defaults to true when enabled is false, and false when enabled is true.
+  # optional: true
+  # Set keystore and keystore_password to valid keystores if enabled is true
+  keystore: conf/.keystore
+  keystore_password: cassandra
+  # Configure the way Cassandra creates SSL contexts.
+  # To use PEM-based key material, see org.apache.cassandra.security.PEMBasedSslContextFactory
+  # ssl_context_factory:
+  #     # Must be an instance of org.apache.cassandra.security.ISslContextFactory
+  #     class_name: org.apache.cassandra.security.DefaultSslContextFactory
+  # Verify client certificates
+  require_client_auth: false
+  # Set trustore and truststore_password if require_client_auth is true
+  # truststore: conf/.truststore
+  # truststore_password: cassandra
+  # More advanced defaults:
+  # protocol: TLS
+  # store_type: JKS
+  # cipher_suites: [
+  #   TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+  #   TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+  #   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA,
+  #   TLS_RSA_WITH_AES_256_CBC_SHA
+  # ]
 
 # internode_compression controls whether traffic between nodes is
 # compressed.
@@ -1543,6 +1587,8 @@ audit_logging_options:
   # max_log_size: 17179869184 # 16 GiB
   ## archive command is "/path/to/script.sh %path" where %path is replaced with the file being rolled:
   # archive_command:
+  ## note that enabling this allows anyone with JMX/nodetool access to run local shell commands as the user running cassandra
+  # allow_nodetool_archive_command: false
   # max_archive_retries: 10
 
 # validate tombstones on reads and compaction
@@ -1769,3 +1815,4 @@ drop_compact_storage_enabled: false
 # file where Cassandra periodically writes the last time it was known to run
 #    heartbeat_file: /var/lib/cassandra/data/cassandra-heartbeat
 #    excluded_keyspaces: # comma separated list of keyspaces to exclude from the check
+#    excluded_tables: # comma separated list of keyspace.table pairs to exclude from the check
