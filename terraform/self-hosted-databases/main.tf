@@ -110,6 +110,15 @@ resource "aws_vpc_security_group_ingress_rule" "allow_mongodb" {
   security_group_id = aws_security_group.dev.id
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allow_mongodb_replicaset" {
+  description       = "allow mongodb replicaset from my ip"
+  cidr_ipv4         = "${var.access_from_ip}/32"
+  ip_protocol       = "tcp"
+  from_port         = 27021
+  to_port           = 27023
+  security_group_id = aws_security_group.dev.id
+}
+
 resource "aws_vpc_security_group_ingress_rule" "allow_oracle" {
   description       = "allow oracle from my ip"
   cidr_ipv4         = "${var.access_from_ip}/32"

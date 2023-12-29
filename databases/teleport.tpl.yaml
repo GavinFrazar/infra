@@ -191,7 +191,7 @@ metadata:
     env: "dev"
 spec:
   protocol: "mongodb"
-  uri: "${HOST}:27021"
+  uri: "mongodb://${HOST}:27021"
   tls:
     # Point it to your Database CA PEM certificate.
     ca_cert: "${MONGO_CA_CERT}"
