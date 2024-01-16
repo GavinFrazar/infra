@@ -65,9 +65,11 @@ function crearteTeleportWallet() {
   WALLET_DIR=$WALLET_LOC
   orapki wallet create -wallet "$WALLET_DIR" -auto_login_only
   orapki wallet import_pkcs12 -wallet "$WALLET_DIR" -auto_login_only -pkcs12file /certs/out.p12 -pkcs12pwd "$PASS"
-  if [ -f /certs/out.ca-client.crt ]; then
+  if [[ -f /certs/out.ca-client.crt ]]; then
+    echo "adding one trusted cert."
     orapki wallet add -wallet "$WALLET_DIR" -trusted_cert -auto_login_only -cert /certs/out.ca-client.crt
   else
+    echo "adding both trusted certs."
     orapki wallet add -wallet "$WALLET_DIR" -trusted_cert -auto_login_only -cert /certs/out.ca-client-0.crt
     orapki wallet add -wallet "$WALLET_DIR" -trusted_cert -auto_login_only -cert /certs/out.ca-client-1.crt
   fi
