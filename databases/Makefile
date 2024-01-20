@@ -155,8 +155,8 @@ teleport-databases: teleport.yaml
 
 .PHONY: rm-teleport-databases
 rm-teleport-databases:
-	- for db in `yq .metadata.name teleport.tpl.yaml -r`; \
-	do tctl rm db/$$db || true; \
+	- for db in `yq '"db/"+.metadata.name' teleport.tpl.yaml -r`; \
+	do tctl rm $$db || true; \
 	done
 	@rm -f teleport-databases
 
