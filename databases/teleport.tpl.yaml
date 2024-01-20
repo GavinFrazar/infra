@@ -65,6 +65,8 @@ metadata:
 spec:
   protocol: "mongodb"
   uri: "${HOST}:27017"
+  admin_user:
+    name: "teleport-admin"
 ---
 kind: db
 version: v3
