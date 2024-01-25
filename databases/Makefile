@@ -167,6 +167,13 @@ showcerts-%: force
 	nc -zv $(HOST) $*
 	openssl s_client -showcerts -connect $(HOST):$* </dev/null
 
+# This can be useful to attach to a docker compose network and poke around.
+# usage: `make netshoot-<netname>`
+# example: `make netshoot-compose_redis-cluster`, i.e. to debug the redis cluster network.
+# more info: https://github.com/nicolaka/netshoot
+netshoot-%: force
+	@ssh -t $(SSH_HOST) docker run -it --rm --net=$* nicolaka/netshoot
+
 # configure cert/key/cas.
 # require and verify a client cert against CAfile.
 # accept one connection and exit.
