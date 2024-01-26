@@ -212,3 +212,17 @@ spec:
     # If your database certificate has an empty CN filed, you must change
     # the TLS mode to only verify the CA.
     mode: verify-full
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-cockroach-cluster"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+spec:
+  protocol: "cockroachdb"
+  uri: "${HOST}:26261"
+  tls:
+    mode: "insecure"

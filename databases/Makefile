@@ -219,6 +219,7 @@ include cassandra.mk
 include cassandra-cluster.mk
 include clickhouse.mk
 include cockroach.mk
+include cockroach-cluster.mk
 include elasticsearch.mk
 include mariadb.mk
 include mongodb.mk

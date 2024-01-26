@@ -7,6 +7,11 @@ networks:
     driver: bridge
   cassandra-cluster:
     driver: bridge
+  cockroach-cluster:
+    driver: bridge
+
+volumes:
+  cockroach-certs:
 
 services:
   postgres:
@@ -274,3 +279,107 @@ services:
       - "redis-cluster"
     hostname:
       redis-node-6
+
+  cockroach-node-1: &roachnode
+    hostname: "cockroach-node-1"
+    depends_on:
+      create-cockroach-cluster-ca:
+        condition: "service_completed_successfully"
+    build:
+      context: "config/cockroach-cluster"
+    # build:
+    #   context: "config/cockroach-cluster/build/node-1"
+    environment: &roachenv
+      CA_DIR: "/ca"
+      COCKROACH_CERTS_DIR: "/certs"
+      ADVERTISE_PORT: "26261"
+      ADVERTISE_HTTP_PORT: "8081"
+    ports:
+      - "26261:26257"
+      - "8081:8080"
+    volumes:
+      - "cockroach-certs:/ca"
+    networks:
+      - "cockroach-cluster"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: '4G'
+        reservations:
+          cpus: '1.0'
+          memory: '1G'
+    command: >-
+      bash -c "cp $$CA_DIR/ca.crt $$COCKROACH_CERTS_DIR &&
+      cat
+      $$COCKROACH_CERTS_DIR/ca.crt
+      $$COCKROACH_CERTS_DIR/out/ca-client.crt >
+      $$COCKROACH_CERTS_DIR/ca-client.crt &&
+      cockroach cert create-node
+      localhost 127.0.0.1
+      ${HOST} $$HOSTNAME
+      --certs-dir=$$COCKROACH_CERTS_DIR
+      --ca-key=$$CA_DIR/ca.key &&
+      cockroach start
+      --logtostderr
+      --certs-dir=$$COCKROACH_CERTS_DIR
+      --advertise-addr=${HOST}:$$ADVERTISE_PORT
+      --advertise-sql-addr=${HOST}:$$ADVERTISE_PORT
+      --advertise-http-addr=${HOST}:$$ADVERTISE_HTTP_PORT
+      --join=${HOST}:26261,${HOST}:26262,${HOST}:26263
+      "
+  cockroach-node-2:
+    <<: *roachnode
+    hostname: "cockroach-node-2"
+    # build:
+    #   context: "config/cockroach-cluster/build/node-2"
+    environment:
+      <<: *roachenv
+      ADVERTISE_PORT: "26262"
+      ADVERTISE_HTTP_PORT: "8082"
+    ports:
+      - "26262:26257"
+      - "8082:8080"
+  cockroach-node-3:
+    <<: *roachnode
+    hostname: "cockroach-node-3"
+    # build:
+    #   context: "config/cockroach-cluster/build/node-3"
+    environment:
+      <<: *roachenv
+      ADVERTISE_PORT: "26263"
+      ADVERTISE_HTTP_PORT: "8083"
+    ports:
+      - "26263:26257"
+      - "8083:8080"
+  cockroach-cluster:
+    <<: *roachnode
+    hostname: "cockroach-cluster"
+    depends_on:
+      - "cockroach-node-1"
+      - "cockroach-node-2"
+      - "cockroach-node-3"
+      - "create-cockroach-cluster-ca"
+    ports: []
+    command: >-
+      bash -c "cockroach init
+      --certs-dir=/ca
+      --host=${HOST}:$$ADVERTISE_PORT
+      "
+  create-cockroach-cluster-ca:
+    <<: *roachnode
+    hostname: "create-cockroach-cluster-ca"
+    depends_on: []
+    ports: []
+    # Create the roach CA and root client cert for cluster init.
+    # Technically, the cockroach-cluster service does the cluster init and is
+    # the only thing that needs the root client cert, but just create it here so
+    # we don't have even more ugly bash spam.
+    command: >-
+      bash -c "cockroach cert create-ca
+      --certs-dir=$$CA_DIR
+      --ca-key=$$CA_DIR/ca.key &&
+      cockroach cert create-client root
+      --certs-dir=$$CA_DIR
+      --ca-key=$$CA_DIR/ca.key
+      "
