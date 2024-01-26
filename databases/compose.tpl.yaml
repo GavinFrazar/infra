@@ -53,7 +53,7 @@ services:
       - mongodb-replicaset-node-3
     environment:
       - "HOST=${HOST}"
-    command: >
+    command: >-
       bash /scripts/init.sh
   mongodb-replicaset-node-1:
     build:
@@ -62,7 +62,7 @@ services:
       - "mongodb-replicaset"
     ports:
       - "27021:27021"
-    command: >
+    command: >-
       --config /etc/mongo/mongod.conf
       --replSet myReplicaSet
       --bind_ip localhost,mongodb-replicaset-node-1
@@ -74,7 +74,7 @@ services:
       - "mongodb-replicaset"
     ports:
       - "27022:27022"
-    command: >
+    command: >-
       --config /etc/mongo/mongod.conf
       --replSet myReplicaSet
       --bind_ip localhost,mongodb-replicaset-node-2
@@ -87,7 +87,7 @@ services:
       - "mongodb-replicaset"
     ports:
       - "27023:27023"
-    command: >
+    command: >-
       --config /etc/mongo/mongod.conf
       --replSet myReplicaSet
       --bind_ip localhost,mongodb-replicaset-node-3
@@ -203,7 +203,7 @@ services:
       - "redis-cluster"
     environment:
       - "REDISCLI_AUTH=somepassword"
-    command: >
+    command: >-
       redis-cli
       --user alice
       --tls
