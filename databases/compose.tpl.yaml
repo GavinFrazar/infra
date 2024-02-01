@@ -203,22 +203,25 @@ services:
       - "redis-cluster"
     environment:
       - "REDISCLI_AUTH=somepassword"
+      - "CERT_DIR=/usr/local/etc/redis/certs"
     command: >-
-      redis-cli
+      bash -c "redis-cli
       --user alice
       --tls
-      --cacert /usr/local/etc/redis/certs/rootca.crt
-      --cert /usr/local/etc/redis/certs/client.crt
-      --key /usr/local/etc/redis/certs/client.key
+      --cacert $$CERT_DIR/rootca.crt
+      --cert $$CERT_DIR/client.crt
+      --key $$CERT_DIR/client.key
       --cluster-yes
       --cluster-replicas 1
       --cluster create
-      ${HOST}:7001
-      ${HOST}:7002
-      ${HOST}:7003
-      ${HOST}:7004
-      ${HOST}:7005
-      ${HOST}:7006
+      redis-node-1:7001
+      redis-node-2:7002
+      redis-node-3:7003
+      redis-node-4:7004
+      redis-node-5:7005
+      redis-node-6:7006
+      "
+
   redis-node-1:
     build:
       context: config/redis-cluster/build/node-1
