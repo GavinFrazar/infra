@@ -107,13 +107,13 @@ services:
     build:
       context: config/cassandra
     ports:
-    - "9042:9042"
+      - "9042:9042"
   scylladb:
     # container_name: cassandra
     build:
       context: config/scylladb
     ports:
-    - "9043:9042"
+      - "9043:9042"
   cassandra-cluster:
     # image: cassandra:4
     build:
@@ -150,7 +150,7 @@ services:
     networks:
       - cassandra-cluster
     ports:
-    - "9052:9042"
+      - "9052:9042"
     healthcheck: *casscheck # same health check for each node.
     environment: *cassenv # same env for each node.
   cassandra-cluster-seed:
@@ -160,7 +160,7 @@ services:
     networks:
       - cassandra-cluster
     ports:
-    - "9053:9042"
+      - "9053:9042"
     healthcheck: *casscheck # same health check for each node.
     environment: *cassenv # same env for each node.
   cockroach:
@@ -230,8 +230,7 @@ services:
       - "17001:17001"
     networks:
       - "redis-cluster"
-    hostname:
-      redis-node-1
+    hostname: redis-node-1
   redis-node-2:
     build:
       context: config/redis-cluster/build/node-2
@@ -240,8 +239,7 @@ services:
       - "17002:17002"
     networks:
       - "redis-cluster"
-    hostname:
-      redis-node-2
+    hostname: redis-node-2
   redis-node-3:
     build:
       context: config/redis-cluster/build/node-3
@@ -250,8 +248,7 @@ services:
       - "17003:17003"
     networks:
       - "redis-cluster"
-    hostname:
-      redis-node-3
+    hostname: redis-node-3
   redis-node-4:
     build:
       context: config/redis-cluster/build/node-4
@@ -260,8 +257,7 @@ services:
       - "17004:17004"
     networks:
       - "redis-cluster"
-    hostname:
-      redis-node-4
+    hostname: redis-node-4
   redis-node-5:
     build:
       context: config/redis-cluster/build/node-5
@@ -270,8 +266,7 @@ services:
       - "17005:17005"
     networks:
       - "redis-cluster"
-    hostname:
-      redis-node-5
+    hostname: redis-node-5
   redis-node-6:
     build:
       context: config/redis-cluster/build/node-6
@@ -280,8 +275,7 @@ services:
       - "17006:17006"
     networks:
       - "redis-cluster"
-    hostname:
-      redis-node-6
+    hostname: redis-node-6
 
   cockroach-node-1: &roachnode
     hostname: "cockroach-node-1"
@@ -307,11 +301,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: '4G'
+          cpus: "2.0"
+          memory: "4G"
         reservations:
-          cpus: '1.0'
-          memory: '1G'
+          cpus: "1.0"
+          memory: "1G"
     command: >-
       bash -c "cp $$CA_DIR/ca.crt $$COCKROACH_CERTS_DIR &&
       cat
