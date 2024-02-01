@@ -205,7 +205,8 @@ services:
       - "REDISCLI_AUTH=somepassword"
       - "CERT_DIR=/usr/local/etc/redis/certs"
     command: >-
-      bash -c "redis-cli
+      bash -c "
+      redis-cli
       --user alice
       --tls
       --cacert $$CERT_DIR/rootca.crt
@@ -219,9 +220,7 @@ services:
       redis-node-3:7003
       redis-node-4:7004
       redis-node-5:7005
-      redis-node-6:7006
-      "
-
+      redis-node-6:7006"
   redis-node-1:
     build:
       context: config/redis-cluster/build/node-1
@@ -307,24 +306,27 @@ services:
           cpus: "1.0"
           memory: "1G"
     command: >-
-      bash -c "cp $$CA_DIR/ca.crt $$COCKROACH_CERTS_DIR &&
+      bash -c
+      "cp $$CA_DIR/ca.crt $$COCKROACH_CERTS_DIR &&
+
       cat
       $$COCKROACH_CERTS_DIR/ca.crt
       $$COCKROACH_CERTS_DIR/out/ca-client.crt >
       $$COCKROACH_CERTS_DIR/ca-client.crt &&
+
       cockroach cert create-node
       localhost 127.0.0.1
       ${HOST} $$HOSTNAME
       --certs-dir=$$COCKROACH_CERTS_DIR
       --ca-key=$$CA_DIR/ca.key &&
+
       cockroach start
       --logtostderr
       --certs-dir=$$COCKROACH_CERTS_DIR
       --advertise-addr=${HOST}:$$ADVERTISE_PORT
       --advertise-sql-addr=${HOST}:$$ADVERTISE_PORT
       --advertise-http-addr=${HOST}:$$ADVERTISE_HTTP_PORT
-      --join=${HOST}:26261,${HOST}:26262,${HOST}:26263
-      "
+      --join=${HOST}:26261,${HOST}:26262,${HOST}:26263"
   cockroach-node-2:
     <<: *roachnode
     hostname: "cockroach-node-2"
