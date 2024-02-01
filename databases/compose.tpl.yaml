@@ -359,24 +359,21 @@ services:
       - "create-cockroach-cluster-ca"
     ports: []
     command: >-
-      bash -c "cockroach init
+      bash -c "
+      cockroach cert create-client root
+      --certs-dir=$$CA_DIR
+      --ca-key=$$CA_DIR/ca.key &&
+
+      cockroach init
       --certs-dir=/ca
-      --host=${HOST}:$$ADVERTISE_PORT
-      "
+      --host=${HOST}:$$ADVERTISE_PORT"
   create-cockroach-cluster-ca:
     <<: *roachnode
     hostname: "create-cockroach-cluster-ca"
     depends_on: []
     ports: []
-    # Create the roach CA and root client cert for cluster init.
-    # Technically, the cockroach-cluster service does the cluster init and is
-    # the only thing that needs the root client cert, but just create it here so
-    # we don't have even more ugly bash spam.
     command: >-
-      bash -c "cockroach cert create-ca
+      bash -c "
+      cockroach cert create-ca
       --certs-dir=$$CA_DIR
-      --ca-key=$$CA_DIR/ca.key &&
-      cockroach cert create-client root
-      --certs-dir=$$CA_DIR
-      --ca-key=$$CA_DIR/ca.key
-      "
+      --ca-key=$$CA_DIR/ca.key"
