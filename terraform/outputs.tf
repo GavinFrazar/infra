@@ -1,5 +1,5 @@
-output "self-hosted-databases-ip" {
-  value = module.self-hosted-databases[0].ec2_databases[0].public_ip
+output "databases-host-ip" {
+  value = local.enabled.databases-host ? module.databases-host[0].ec2_databases.public_ip : null
 }
 
 output "my-ip" {

@@ -1,5 +1,4 @@
-resource "aws_instance" "databases" {
-  count                       = var.ec2_instance_count
+resource "aws_instance" "db-host" {
   ami                         = var.ami_id
   associate_public_ip_address = true
   instance_type               = var.ec2_instance_type
@@ -23,7 +22,9 @@ resource "aws_instance" "databases" {
     kms_key_id            = aws_kms_key.databases.arn
   }
 
-  tags = var.additional_tags
+  tags = {
+    Name = "${var.namespace}-databases-host"
+  }
 }
 
 # KMS key used to encrypt AMI and Instance root block devices
@@ -33,11 +34,13 @@ resource "aws_kms_key" "databases" {
   enable_key_rotation = true
   policy              = data.aws_iam_policy_document.encryption_key_policy.json
 
-  tags = var.additional_tags
+  tags = {
+    Name = "${var.namespace}-databases-host"
+  }
 }
 
-
 resource "aws_security_group" "dev" {
+  name = "${var.namespace}-databases-host"
   description = "allow self-hosted database and ssh access from my ip"
   lifecycle {
     create_before_destroy = true
@@ -53,7 +56,7 @@ resource "aws_vpc_security_group_egress_rule" "allow_all" {
 
 resource "aws_vpc_security_group_ingress_rule" "allow_self" {
   description       = "allow access from the ec2 instance itself"
-  cidr_ipv4         = "${aws_instance.databases[0].public_ip}/32"
+  cidr_ipv4         = "${aws_instance.db-host.public_ip}/32"
   ip_protocol       = "-1"
   security_group_id = aws_security_group.dev.id
 }

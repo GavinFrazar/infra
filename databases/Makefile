@@ -18,7 +18,7 @@ export SHELL
 
 # The following variables can be overridden.
 # Use either an env var or "make [target...] <VAR>=<VALUE>"
-HOST ?= $(shell terraform -chdir=../terraform output -raw self-hosted-databases-ip)
+HOST ?= $(shell terraform -chdir=../terraform output -raw databases-host-ip)
 HOST := $(HOST)
 export HOST
 
@@ -49,12 +49,16 @@ all: $(DATABASES)
 
 .PHONY: terraform-up
 terraform-up:
-	@terraform -chdir=../terraform apply -target=module.self-hosted-databases
+	@terraform -chdir=../terraform apply \
+		-target=module.databases-host \
+		-var 'enabled={databases-host=true}'
 	@echo you will need to wait for user data init installing docker and docker compose.
 
 .PHONY: terraform-down
 terraform-down:
-	terraform -chdir=../terraform destroy -target=module.self-hosted-databases
+	terraform -chdir=../terraform destroy \
+		-target=module.databases-host \
+		-var 'enabled={databases-host=true}'
 
 .PHONY: list
 list:

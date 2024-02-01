@@ -1,4 +1,9 @@
 # required inputs.
+variable "namespace" {
+  description = "Namespace for resource names."
+  type        = string
+}
+
 variable "access_keypair_name" {
   description = "The Name of the AWS keypair to use for interacting with the self-hosted db ec2 instance."
   type        = string
@@ -9,19 +14,7 @@ variable "access_from_ip" {
   type        = string
 }
 
-variable "subnet_id" {
-  description = "The subnet to use when creating the self-hosted db ec2 instance(s)"
-  type        = string
-  default     = ""
-}
-
 # optional inputs.
-variable "additional_tags" {
-  description = "Additional tags to be applied to the resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "ami_id" {
   type        = string
   description = "the AMI to use to provision up Teleport instances"
@@ -34,8 +27,8 @@ variable "ec2_instance_type" {
   default     = "t3.2xlarge"
 }
 
-variable "ec2_instance_count" {
-  description = "The number of self-hosted database ec2 instances to spin up."
-  type        = number
-  default     = 1
+variable "subnet_id" {
+  description = "The subnet to use when creating the self-hosted db ec2 instance(s)"
+  type        = string
+  default     = ""
 }

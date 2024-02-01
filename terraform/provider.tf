@@ -8,3 +8,11 @@ provider "aws" {
     }
   }
 }
+
+provider "google" {
+  project = "teleport-dev"
+  region  = "us-west1"
+  zone    = "us-west1-c"
+
+  default_labels = local.default_tags
+}
