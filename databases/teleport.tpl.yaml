@@ -225,4 +225,5 @@ spec:
   protocol: "cockroachdb"
   uri: "${HOST}:26261"
   tls:
+    # TODO(gavin): workaround this?
     mode: "insecure"
