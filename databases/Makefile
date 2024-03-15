@@ -18,18 +18,21 @@ export SHELL
 
 # The following variables can be overridden.
 # Use either an env var or "make [target...] <VAR>=<VALUE>"
-HOST ?= $(shell terraform -chdir=../terraform output -raw databases-host-ip)
+HOST ?= $(shell terraform -chdir=../terraform output -raw databases_host_ip)
 HOST := $(HOST)
 export HOST
 
 # the remote host directory to store the docker compose file and all config.
 DOCKER_COMPOSE_PROJECT_DIR ?= ~
+export DOCKER_COMPOSE_PROJECT_DIR
 
 # the username to use when ssh'ing to HOST: SSH_USER=<username>
 SSH_USER ?= ubuntu
+export SSH_USER
 
 # These vars should not be overridden.
 SSH_HOST := $(SSH_USER)@$(HOST)
+export SSH_HOST
 
 # this is intentionally a lazy var (= not :=) for use in a recipe where the auto
 # variable $@ is actually defined. Do not change.
@@ -50,15 +53,15 @@ all: $(DATABASES)
 .PHONY: terraform-up
 terraform-up:
 	@terraform -chdir=../terraform apply \
-		-target=module.databases-host \
-		-var 'enabled={databases-host=true}'
+		-target=module.databases_host \
+		-var 'enabled={databases_host=true}'
 	@echo you will need to wait for user data init installing docker and docker compose.
 
 .PHONY: terraform-down
 terraform-down:
 	terraform -chdir=../terraform destroy \
-		-target=module.databases-host \
-		-var 'enabled={databases-host=true}'
+		-target=module.databases_host \
+		-var 'enabled={databases_host=true}'
 
 .PHONY: list
 list:
@@ -71,7 +74,7 @@ show-host:
 sync: compose.yaml config.tar.gz
 	@ssh $(SSH_HOST) "mkdir -p $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 	@scp compose.yaml config.tar.gz $(SSH_HOST):$(DOCKER_COMPOSE_PROJECT_DIR)
-	@ssh $(SSH_HOST) "tar --warning=no-unknown-keyword -xzf $(DOCKER_COMPOSE_PROJECT_DIR)/config.tar.gz -C $(DOCKER_COMPOSE_PROJECT_DIR)/config"
+	@ssh $(SSH_HOST) "tar -xzf $(DOCKER_COMPOSE_PROJECT_DIR)/config.tar.gz -C $(DOCKER_COMPOSE_PROJECT_DIR)/config"
 	@touch sync
 
 # only specified env vars are substituted by envsubst.
@@ -176,7 +179,7 @@ showcerts-%: force
 # example: `make netshoot-compose_redis-cluster`, i.e. to debug the redis cluster network.
 # more info: https://github.com/nicolaka/netshoot
 netshoot-%: force
-	@ssh -t $(SSH_HOST) docker run -it --rm --net=$* nicolaka/netshoot
+	@ssh -t $(SSH_HOST) docker run -it --rm --net=$* -v "/home/gavin/compose/config:/config" nicolaka/netshoot
 
 # configure cert/key/cas.
 # require and verify a client cert against CAfile.

@@ -48,23 +48,27 @@ function reconfigure_listener() {
 }
 
 function disable_tcps() {
-  sed -i -e '/WALLET_LOCATION/d' -e '/SSL_CLIENT_AUTHENTICATION/d' "$ORACLE_BASE"/oradata/dbconfig/"$ORACLE_SID"/{sqlnet,listener}.ora
-  sed -i "/TCPS/d" "$ORACLE_BASE"/oradata/dbconfig/"$ORACLE_SID"/listener.ora
+  sed -i -e '/WALLET_LOCATION/d' -e '/SSL_CLIENT_AUTHENTICATION/d' "${ORACLE_BASE}/oradata/dbconfig/${ORACLE_SID}/"{sqlnet,listener}.ora
+  sed -i "/TCPS/d" "${ORACLE_BASE}/oradata/dbconfig/${ORACLE_SID}/listener.ora"
   echo -e "\nReconfiguring the Listener...\n"
   reconfigure_listener
-  rm -rf "$WALLET_LOC" "$CLIENT_WALLET_LOC"
+  rm -rf "${WALLET_LOC}" "${CLIENT_WALLET_LOC}"
 }
 
 
 function crearteTeleportWallet() {
   if [[ -f "/certs/server/cwallet.sso" ]]; then
-    cp -R /certs/server $WALLET_LOC
+    cp -R "/certs/server" "${WALLET_LOC}"
     return
   fi
   PASS=$(cat /certs/tctl.result | grep -o "pkcs12pwd\ .*" | cut -d' ' -f2)
   WALLET_DIR=$WALLET_LOC
   orapki wallet create -wallet "$WALLET_DIR" -auto_login_only
+
+  # setup server identity
   orapki wallet import_pkcs12 -wallet "$WALLET_DIR" -auto_login_only -pkcs12file /certs/out.p12 -pkcs12pwd "$PASS"
+
+  # trust Teleport connections
   if [[ -f /certs/out.ca-client.crt ]]; then
     echo "adding one trusted cert."
     orapki wallet add -wallet "$WALLET_DIR" -trusted_cert -auto_login_only -cert /certs/out.ca-client.crt
@@ -89,7 +93,7 @@ EOF
 
 
 ensure_db_avaiability
-sqlplus sys/$ORACLE_PWD as sysdba @/tmp/create_user.sql
+sqlplus "sys/${ORACLE_PWD}" as sysdba @/tmp/create_user.sql
 
 
 

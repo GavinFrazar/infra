@@ -32,6 +32,21 @@ spec:
 kind: db
 version: v3
 metadata:
+  name: "self-hosted-postgres-auto-user"
+  description: "Example dyn database resource"
+  labels:
+    host: "mbp"
+    env: "dev"
+    "db-users": "auto"
+spec:
+  protocol: "postgres"
+  uri: "${HOST}:5432"
+  admin_user:
+    name: "teleport-admin"
+---
+kind: db
+version: v3
+metadata:
   name: "self-hosted-mysql"
   description: "Example dyn database resource"
   labels:
@@ -160,7 +175,7 @@ metadata:
   description: "Example dyn database resource"
   labels:
     host: "mbp"
-    env: "dev"
+    env: "wip"
 spec:
   protocol: "elasticsearch"
   uri: "${HOST}:9200"

@@ -1,16 +1,14 @@
 provider "aws" {
-  region = "us-west-1"
+  # use US West Oregon for min capacity redshift
+  region  = "us-west-2"
 
   default_tags {
-    tags = {
-      "origin"                    = "gavin",
-      "env"                       = "dev",
-    }
+    tags = local.default_tags
   }
 }
 
 provider "google" {
-  project = "teleport-dev"
+  project = "teleport-dev-320620"
   region  = "us-west1"
   zone    = "us-west1-c"
 
