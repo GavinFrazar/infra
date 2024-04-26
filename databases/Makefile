@@ -122,7 +122,7 @@ clean: $$(DATABASES_PAT)
 
 # connect, in sequence, to each database interactively.
 .PHONY: connect
-connect: $$(DATABASES_PAT) ;
+connect: $$(DATABASES_PAT) teleport-databases ;
 
 %-connect: %-hint teleport-databases
 	tsh db connect $($*-tsh-db-connect-flags)
