@@ -27,8 +27,7 @@ SSH_USER ?= ubuntu
 # These vars should not be overridden.
 SSH_HOST := $(SSH_USER)@$(HOST)
 
-DOCKER_HOST:=ssh://$(SSH_HOST)
-export DOCKER_HOST
+DOCKER_HOST := ssh://$(SSH_HOST)
 
 # this is intentionally a lazy var (= not :=) for use in a recipe where the auto
 # variable $@ is actually defined. Do not change.
@@ -38,10 +37,12 @@ DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x ba
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
 CONFIG_FILES := $(shell fd -HI . $(DATABASES))
 
-DOCKER := docker
+DOCKER := DOCKER_HOST=$(DOCKER_HOST) /opt/homebrew/bin/docker
 DOCKER_COMPOSE := $(DOCKER) compose
-COMPOSE_UP_CMD := $(DOCKER_COMPOSE) up --build -d
-COMPOSE_DOWN_CMD := $(DOCKER_COMPOSE) down --remove-orphans -v
+# wait for healthy services and then detach
+COMPOSE_UP_CMD := $(DOCKER_COMPOSE) up --build --detach --wait
+# remove containers not in the compose yaml, and remove the volumes named in compose.yaml.
+COMPOSE_DOWN_CMD := $(DOCKER_COMPOSE) down --remove-orphans --volumes
 
 .PHONY: all
 all: $(DATABASES)
