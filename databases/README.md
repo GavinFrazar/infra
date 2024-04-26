@@ -72,3 +72,35 @@ Edit the corresponding template files instead.
 - `make teleport-databases`: tctl create all the databases
 - `make rm-teleport-databases`: tctl rm all the databases
 - `make debug-db`: start an openssl s_server that will dump all certs presented by teleport db agent. Run this and then `tsh db connect debug-db` to test. The debug-db yaml is in teleport.tpl.yaml. Useful for debugging.
+
+## Troubleshooting
+
+``` sh
+unable to get image 'databases-cockroach-node-1': error during connect: Get "http://docker.example.com/v1.44/images/databases-cockroach-node-1/json": command [ssh -o ConnectTimeout=30 -l gavin -- pop-os docker system dial-stdio] has exited with exit status 255, please make sure the URL is valid, and Docker 18.09 or later is installed on the remote host: stderr=Pseudo-terminal will not be allocated because stdin is not a terminal.
+```
+
+When you use docker compose with a remote ssh host, it creates an ssh connection for each service it operates on.
+So if you have 10 container services defined in compose.yaml, then `docker compose up` will initiate 10 ssh connections
+in parallel.
+By default, sshd will throttle too many startups in a short period of time (MaxStartups setting).
+This means when you run `make up`, you will probably get something like the above error.
+To fix this, you have two options:
+
+1. configure your remote host to allow a larger MaxStartups value (less secure, I don't recommend this)
+2. change your local ssh config to use ControlMaster multiplexing to the remote host.
+
+Here's how you can setup ssh multiplexing:
+
+``` sh
+$ mkdir ~/.ssh/controlmasters
+$ cat <<EOF >> ~/.ssh/config
+
+# your docker host's name, or you can just use a wildcard if you don't mind
+# multiplexing for all hosts
+Host $HOST 
+    ControlPath ~/.ssh/controlmasters/%r@%h:%p
+    ControlMaster auto
+    ControlPersist 1m
+EOF
+```
+
