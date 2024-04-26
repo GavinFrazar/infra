@@ -26,6 +26,7 @@ services:
       context: postgres
     ports:
       - "5432:5432"
+    restart: on-failure
   mysql:
     # container_name: mysql
     build:
@@ -34,6 +35,7 @@ services:
       - "MYSQL_RANDOM_ROOT_PASSWORD=yes"
     ports:
       - "3306:3306"
+    restart: on-failure
   mariadb:
     # container_name: mariadb
     build:
@@ -108,6 +110,29 @@ services:
     ports:
       - "1521:1521"
       - "2484:2484"
+  scylladb:
+    # container_name: cassandra
+    build:
+      context: scylladb
+    ports:
+      - "9043:9042"
+    healthcheck:
+      # check if the node can print cluster description
+      test: ["CMD", "bash", "-c", "nodetool describecluster"]
+      start_period: 60s # period where failures dont count against retry limit
+      start_interval: 5s # more rapid while failures dont count
+      interval: 15s # after start period, slow down in case bootstrap is taking a while
+      timeout: 10s # command timeout
+      retries: 5
+    environment:
+      - "HEAP_NEWSIZE=256M" # 1/4 of max heap
+      - "MAX_HEAP_SIZE=1024M" # should be less than the container limit with some good margin.
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 2G
+    restart: on-failure
   cassandra:
     build:
       context: cassandra
@@ -116,8 +141,8 @@ services:
     healthcheck: &casscheck
       # check if the node can print cluster description and there are not any
       # nodes marked UNREACHABLE in the cluster description.
-      test: ["CMD", "bash", "-c", "set -eo pipefail; nodetool describecluster | grep -v UNREACHABLE"]
-      start_period: 60s # period where failurse dont count against retry limit
+      test: ["CMD", "bash", "-c", "set -eo pipefail; nodetool describecluster | grep -v UNREACHABLE | grep 'Joining: 0'"]
+      start_period: 60s # period where failures dont count against retry limit
       start_interval: 5s # more rapid while failures dont count
       interval: 15s # after start period, slow down in case bootstrap is taking a while
       timeout: 10s # command timeout
@@ -130,12 +155,7 @@ services:
         limits:
           cpus: '0.5'
           memory: 2G
-  scylladb:
-    # container_name: cassandra
-    build:
-      context: scylladb
-    ports:
-      - "9043:9042"
+    restart: on-failure
 # --- CASSANDRA CLUSTER START ---
   cassandra-cluster:
     build:
@@ -160,6 +180,7 @@ services:
       - "HEAP_NEWSIZE=256M" # 1/4 of max heap
       - "MAX_HEAP_SIZE=1024M" # should be less than the container limit with some good margin.
     deploy: *cassdeploy
+    restart: on-failure
   cassandra-cluster-node:
     build:
       context: cassandra-cluster
@@ -174,6 +195,7 @@ services:
     healthcheck: *casscheck # same health check for each node.
     environment: *cassenv # same env for each node.
     deploy: *cassdeploy
+    restart: on-failure
   cassandra-cluster-seed:
     build:
       context: cassandra-cluster
@@ -184,12 +206,7 @@ services:
     healthcheck: *casscheck # same health check for each node.
     environment: *cassenv # same env for each node.
     deploy: *cassdeploy
-  cockroach:
-    build:
-      context: cockroach
-    ports:
-      - "26257:26257"
-      - "8080:8080"
+    restart: on-failure
   clickhouse:
     build:
       context: clickhouse
@@ -330,14 +347,11 @@ services:
       - "cockroach-certs:/ca"
     networks:
       - "cockroach-cluster"
-    deploy:
+    deploy: &roachdeploy
       resources:
         limits:
-          cpus: "2.0"
-          memory: "4G"
-        reservations:
-          cpus: "1.0"
-          memory: "1G"
+          cpus: "0.25"
+          memory: "512M"
     command: >-
       bash -c
       "cp $$CA_DIR/ca.crt $$COCKROACH_CERTS_DIR &&
@@ -412,3 +426,18 @@ services:
       cockroach cert create-ca
       --certs-dir=$$CA_DIR
       --ca-key=$$CA_DIR/ca.key"
+
+  cockroach:
+    build:
+      context: cockroach
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "cockroach", "sql", "--certs-dir=/certs/out", "-e", "select 1"]
+      start_period: 60s
+      start_interval: 5s
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    deploy: *roachdeploy
