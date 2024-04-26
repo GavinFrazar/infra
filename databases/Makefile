@@ -20,19 +20,15 @@ export SHELL
 # Use either an env var or "make [target...] <VAR>=<VALUE>"
 HOST ?= $(shell terraform -chdir=../terraform output -raw databases_host_ip)
 HOST := $(HOST)
-export HOST
-
-# the remote host directory to store the docker compose file and all config.
-DOCKER_COMPOSE_PROJECT_DIR ?= ~
-export DOCKER_COMPOSE_PROJECT_DIR
 
 # the username to use when ssh'ing to HOST: SSH_USER=<username>
 SSH_USER ?= ubuntu
-export SSH_USER
 
 # These vars should not be overridden.
 SSH_HOST := $(SSH_USER)@$(HOST)
-export SSH_HOST
+
+DOCKER_HOST:=ssh://$(SSH_HOST)
+export DOCKER_HOST
 
 # this is intentionally a lazy var (= not :=) for use in a recipe where the auto
 # variable $@ is actually defined. Do not change.
@@ -42,7 +38,8 @@ DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x ba
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
 CONFIG_FILES := $(shell fd -HI . $(DATABASES))
 
-DOCKER_COMPOSE := docker compose --project-directory "$(DOCKER_COMPOSE_PROJECT_DIR)"
+DOCKER := docker
+DOCKER_COMPOSE := $(DOCKER) compose
 COMPOSE_UP_CMD := $(DOCKER_COMPOSE) up --build -d
 COMPOSE_DOWN_CMD := $(DOCKER_COMPOSE) down --remove-orphans -v
 
@@ -71,70 +68,56 @@ list:
 show-host:
 	@echo $(HOST)
 
-sync: compose.yaml config.tar.gz
-	@ssh $(SSH_HOST) "mkdir -p $(DOCKER_COMPOSE_PROJECT_DIR)/config"
-	@scp compose.yaml config.tar.gz $(SSH_HOST):$(DOCKER_COMPOSE_PROJECT_DIR)
-	@ssh $(SSH_HOST) "tar -xzf $(DOCKER_COMPOSE_PROJECT_DIR)/config.tar.gz -C $(DOCKER_COMPOSE_PROJECT_DIR)/config"
-	@touch sync
-
 # only specified env vars are substituted by envsubst.
 # this is because we do not want to expand everything that looks like
 # an env var in the template.
 compose.yaml: compose.tpl.yaml
 	@envsubst '$${HOST}=$(HOST)' < $< > $@
 
-config.tar.gz: $(CONFIG_FILES)
-	@tar czf config.tar.gz $(DATABASES)
-
 .PHONY: ssh
 ssh:
 	@ssh -t $(SSH_HOST)
 
 .PHONY: logs
-logs: sync
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) logs --follow
+logs: compose.yaml
+	@$(DOCKER_COMPOSE) logs --follow
 
-%-logs: force sync
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) logs --follow $*
+%-logs: force compose.yaml
+	@$(DOCKER_COMPOSE) logs --follow $*
 
-%-shell: force sync
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -it $* bash
+%-shell: force compose.yaml
+	@$(DOCKER_COMPOSE) exec -it $* bash
 
-%-root-shell: force sync
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -it -u root $* bash
+%-root-shell: force compose.yaml
+	@$(DOCKER_COMPOSE) exec -it -u root $* bash
 
-%-run: force sync
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) run -it --rm $* bash
+%-run: force compose.yaml
+	@$(DOCKER_COMPOSE) run -it --rm $* bash
 
-%-run-root: force sync
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) run -it --rm -u root $* bash
+%-run-root: force compose.yaml
+	@$(DOCKER_COMPOSE) run -it --rm -u root $* bash
 
 .PHONY: up
-up: sync
-	@ssh $(SSH_HOST) $(COMPOSE_UP_CMD)
+up: compose.yaml
+	@$(COMPOSE_UP_CMD)
 
-%-up: force sync
-	@ssh $(SSH_HOST) $(COMPOSE_UP_CMD) $*
+%-up: force compose.yaml
+	@$(COMPOSE_UP_CMD) $*
 
 .PHONY: down
-down: sync
-	@ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD)
+down: compose.yaml
+	@$(COMPOSE_DOWN_CMD)
 
-%-down: force sync
-	@ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) $*
+%-down: force compose.yaml
+	@$(COMPOSE_DOWN_CMD) $*
 
 .PHONY: clean
 clean: $$(DATABASES_PAT)
-	@rm -f sync teleport-databases
-	rm -f config.tar.gz teleport.yaml compose.yaml
+	@rm -f teleport-databases
+	rm -f teleport.yaml compose.yaml
 
 %-clean: force
 	rm -rf $*/build
-
-.PHONY: clean-remote
-clean-remote:
-	@rm -f sync
-	ssh $(SSH_HOST) "rm -rf $(DOCKER_COMPOSE_PROJECT_DIR)/{config,config.tar.gz,compose.yaml}"
 
 # connect, in sequence, to each database interactively.
 .PHONY: connect
@@ -179,7 +162,7 @@ showcerts-%: force
 # example: `make netshoot-compose_redis-cluster`, i.e. to debug the redis cluster network.
 # more info: https://github.com/nicolaka/netshoot
 netshoot-%: force
-	@ssh -t $(SSH_HOST) docker run -it --rm --net=$* -v "/home/gavin/compose/config:/config" nicolaka/netshoot
+	@$(DOCKER) run -it --rm --net=$* nicolaka/netshoot
 
 # configure cert/key/cas.
 # require and verify a client cert against CAfile.

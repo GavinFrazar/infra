@@ -17,13 +17,13 @@ services:
   postgres:
     # container_name: postgres
     build:
-      context: config/postgres
+      context: postgres
     ports:
       - "5432:5432"
   mysql:
     # container_name: mysql
     build:
-      context: config/mysql
+      context: mysql
     environment:
       - "MYSQL_RANDOM_ROOT_PASSWORD=yes"
     ports:
@@ -31,7 +31,7 @@ services:
   mariadb:
     # container_name: mariadb
     build:
-      context: config/mariadb
+      context: mariadb
     environment:
       - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
     ports:
@@ -39,12 +39,12 @@ services:
   mongodb:
     # container_name: mongodb
     build:
-      context: config/mongodb
+      context: mongodb
     ports:
       - "27017:27017"
   mongodb-replicaset:
     build:
-      context: config/mongodb-replicaset/build/node-1
+      context: mongodb-replicaset/build/node-1
     networks:
       - "mongodb-replicaset"
     depends_on:
@@ -57,7 +57,7 @@ services:
       bash /scripts/init.sh
   mongodb-replicaset-node-1:
     build:
-      context: config/mongodb-replicaset/build/node-1
+      context: mongodb-replicaset/build/node-1
     networks:
       - "mongodb-replicaset"
     ports:
@@ -69,7 +69,7 @@ services:
       --port 27021
   mongodb-replicaset-node-2:
     build:
-      context: config/mongodb-replicaset/build/node-2
+      context: mongodb-replicaset/build/node-2
     networks:
       - "mongodb-replicaset"
     ports:
@@ -82,7 +82,7 @@ services:
   mongodb-replicaset-node-3:
     # image: "mongo:5"
     build:
-      context: config/mongodb-replicaset/build/node-3
+      context: mongodb-replicaset/build/node-3
     networks:
       - "mongodb-replicaset"
     ports:
@@ -95,7 +95,7 @@ services:
   oracle:
     # container_name: oracle
     build:
-      context: config/oracle
+      context: oracle
     environment:
       - "ENABLE_TCPS=false"
       - "ORACLE_PWD=pass"
@@ -105,19 +105,19 @@ services:
   cassandra:
     # container_name: cassandra
     build:
-      context: config/cassandra
+      context: cassandra
     ports:
       - "9042:9042"
   scylladb:
     # container_name: cassandra
     build:
-      context: config/scylladb
+      context: scylladb
     ports:
       - "9043:9042"
   cassandra-cluster:
     # image: cassandra:4
     build:
-      context: config/cassandra-cluster
+      context: cassandra-cluster
     depends_on:
       # start this node second after the first is healthy.
       cassandra-cluster-node:
@@ -142,7 +142,7 @@ services:
   cassandra-cluster-node:
     # image: cassandra:4
     build:
-      context: config/cassandra-cluster
+      context: cassandra-cluster
     depends_on:
       # start this node second after the first is healthy.
       cassandra-cluster-seed:
@@ -156,7 +156,7 @@ services:
   cassandra-cluster-seed:
     # image: cassandra:4
     build:
-      context: config/cassandra-cluster
+      context: cassandra-cluster
     networks:
       - cassandra-cluster
     ports:
@@ -165,13 +165,13 @@ services:
     environment: *cassenv # same env for each node.
   cockroach:
     build:
-      context: config/cockroach
+      context: cockroach
     ports:
       - "26257:26257"
       - "8080:8080"
   clickhouse:
     build:
-      context: config/clickhouse
+      context: clickhouse
     ports:
       - "8123:8123"
       - "9000:9000"
@@ -179,19 +179,19 @@ services:
       - "9440:9440"
   elasticsearch:
     build:
-      context: config/elasticsearch
+      context: elasticsearch
     environment:
       - "discovery.type=single-node"
     ports:
       - "9200:9200"
   redis:
     build:
-      context: config/redis
+      context: redis
     ports:
       - "6379:6379"
   redis-cluster:
     build:
-      context: config/redis-cluster/build/node-1
+      context: redis-cluster/build/node-1
     depends_on:
       - redis-node-1
       - redis-node-2
@@ -223,7 +223,7 @@ services:
       redis-node-6:7006"
   redis-node-1:
     build:
-      context: config/redis-cluster/build/node-1
+      context: redis-cluster/build/node-1
     ports:
       - "7001:7001"
       - "17001:17001"
@@ -232,7 +232,7 @@ services:
     hostname: redis-node-1
   redis-node-2:
     build:
-      context: config/redis-cluster/build/node-2
+      context: redis-cluster/build/node-2
     ports:
       - "7002:7002"
       - "17002:17002"
@@ -241,7 +241,7 @@ services:
     hostname: redis-node-2
   redis-node-3:
     build:
-      context: config/redis-cluster/build/node-3
+      context: redis-cluster/build/node-3
     ports:
       - "7003:7003"
       - "17003:17003"
@@ -250,7 +250,7 @@ services:
     hostname: redis-node-3
   redis-node-4:
     build:
-      context: config/redis-cluster/build/node-4
+      context: redis-cluster/build/node-4
     ports:
       - "7004:7004"
       - "17004:17004"
@@ -259,7 +259,7 @@ services:
     hostname: redis-node-4
   redis-node-5:
     build:
-      context: config/redis-cluster/build/node-5
+      context: redis-cluster/build/node-5
     ports:
       - "7005:7005"
       - "17005:17005"
@@ -268,7 +268,7 @@ services:
     hostname: redis-node-5
   redis-node-6:
     build:
-      context: config/redis-cluster/build/node-6
+      context: redis-cluster/build/node-6
     ports:
       - "7006:7006"
       - "17006:17006"
@@ -282,9 +282,9 @@ services:
       create-cockroach-cluster-ca:
         condition: "service_completed_successfully"
     build:
-      context: "config/cockroach-cluster"
+      context: "cockroach-cluster"
     # build:
-    #   context: "config/cockroach-cluster/build/node-1"
+    #   context: "cockroach-cluster/build/node-1"
     environment: &roachenv
       CA_DIR: "/ca"
       COCKROACH_CERTS_DIR: "/certs"
@@ -331,7 +331,7 @@ services:
     <<: *roachnode
     hostname: "cockroach-node-2"
     # build:
-    #   context: "config/cockroach-cluster/build/node-2"
+    #   context: "cockroach-cluster/build/node-2"
     environment:
       <<: *roachenv
       ADVERTISE_PORT: "26262"
@@ -343,7 +343,7 @@ services:
     <<: *roachnode
     hostname: "cockroach-node-3"
     # build:
-    #   context: "config/cockroach-cluster/build/node-3"
+    #   context: "cockroach-cluster/build/node-3"
     environment:
       <<: *roachenv
       ADVERTISE_PORT: "26263"

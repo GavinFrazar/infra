@@ -101,7 +101,7 @@ $(NODES_SCRIPTS): $(addprefix $(DB)/scripts/,init.sh create_users.js) | $(NODES_
 # which is only used to configure the replicaset on init.
 $(DB)-down: CONTAINERS:=mongodb-replicaset $(addprefix mongodb-replicaset-node-, $(NODES))
 $(DB)-down:
-	ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) $(CONTAINERS)
+	$(COMPOSE_DOWN_CMD) $(CONTAINERS)
 
 $(DB)-tsh-db-connect-flags := --db-user="alice" --db-name="admin" self-hosted-mongodb-replicaset
 $(DB)-test-input := echo 'rs.status();'

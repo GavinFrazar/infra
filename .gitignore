@@ -1,5 +1,9 @@
-**/build
-terraform/.terraform
+**/.DS_Store
+**/build/*
+**/.terraform/*
+**/.tfstate
+**/.tfstate.*
+
 databases/sync
 databases/teleport-databases
 databases/compose.yaml

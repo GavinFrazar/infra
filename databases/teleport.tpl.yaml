@@ -175,7 +175,7 @@ metadata:
   description: "Example dyn database resource"
   labels:
     host: "mbp"
-    env: "wip"
+    env: "dev"
 spec:
   protocol: "elasticsearch"
   uri: "${HOST}:9200"

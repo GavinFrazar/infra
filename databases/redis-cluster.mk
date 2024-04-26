@@ -81,7 +81,7 @@ $(NODES_USERS): $(DB)/users.acl | $(NODES_BUILD)
 # which is only used to configure the cluster on init.
 $(DB)-down: CONTAINERS:=redis-cluster $(addprefix redis-node-, $(NODES))
 $(DB)-down:
-	ssh $(SSH_HOST) $(COMPOSE_DOWN_CMD) $(CONTAINERS)
+	$(COMPOSE_DOWN_CMD) $(CONTAINERS)
 
 $(DB)-proxy:
 	tsh proxy db --tunnel --db-user="alice" -p 7001 self-hosted-redis-cluster

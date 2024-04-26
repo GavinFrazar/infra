@@ -12,5 +12,5 @@ $(DB)-test-input := echo 'select 1 from dual;'
 WALLET := /opt/oracle/oradata/dbconfig/XE/.tls-wallet
 .PHONY: oracle-display-wallet
 oracle-display-wallet:
-	@ssh -t $(SSH_HOST) $(DOCKER_COMPOSE) exec -u root oracle \
+	@$(DOCKER_COMPOSE) exec -u root oracle \
 		orapki wallet display -complete -wallet $(WALLET)

@@ -18,14 +18,12 @@ Then run `make terraform-up` to create an ec2 instance with docker installed.
 ### Use without EC2
 You can alternatively set/export the following env vars to avoid all
 dependence on ec2/terraform:
-- `DOCKER_COMPOSE_PROJECT_DIR` is the directory to put all the config for docker compose project. Be sure to use single quotes for this, because you do not want the path expanded by your shell on your local box.
 - `HOST` is the remote/local host to ssh into, since this makefile works for local/remote dev. I suggest using a linux host, as there is no oracle db image for M1 macos.
 - `SSH_USER` is the remote host ssh user to login as.
 
 Example that I use to my thinkpad:
 
 ```
-export DOCKER_COMPOSE_PROJECT_DIR='compose'
 export HOST=pop-os.local
 export SSH_USER=gavin
 ```
