@@ -210,6 +210,11 @@ services:
       context: redis
     ports:
       - "6379:6379"
+    deploy: &redisdeploy
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "32M"
   redis-cluster:
     build:
       context: redis-cluster/build/node-1
@@ -242,6 +247,7 @@ services:
       redis-node-4:7004
       redis-node-5:7005
       redis-node-6:7006"
+    deploy: *redisdeploy
   redis-node-1:
     build:
       context: redis-cluster/build/node-1
@@ -251,6 +257,7 @@ services:
     networks:
       - "redis-cluster"
     hostname: redis-node-1
+    deploy: *redisdeploy
   redis-node-2:
     build:
       context: redis-cluster/build/node-2
@@ -260,6 +267,7 @@ services:
     networks:
       - "redis-cluster"
     hostname: redis-node-2
+    deploy: *redisdeploy
   redis-node-3:
     build:
       context: redis-cluster/build/node-3
@@ -269,6 +277,7 @@ services:
     networks:
       - "redis-cluster"
     hostname: redis-node-3
+    deploy: *redisdeploy
   redis-node-4:
     build:
       context: redis-cluster/build/node-4
@@ -278,6 +287,7 @@ services:
     networks:
       - "redis-cluster"
     hostname: redis-node-4
+    deploy: *redisdeploy
   redis-node-5:
     build:
       context: redis-cluster/build/node-5
@@ -287,6 +297,7 @@ services:
     networks:
       - "redis-cluster"
     hostname: redis-node-5
+    deploy: *redisdeploy
   redis-node-6:
     build:
       context: redis-cluster/build/node-6
@@ -296,6 +307,7 @@ services:
     networks:
       - "redis-cluster"
     hostname: redis-node-6
+    deploy: *redisdeploy
 
   cockroach-node-1: &roachnode
     hostname: "cockroach-node-1"
