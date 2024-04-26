@@ -3,12 +3,18 @@ version: "3.9"
 networks:
   redis-cluster:
     driver: bridge
+    # allow standalone containers to attach to this network.
+    # useful to debug network issues.
+    attachable: true
   mongodb-replicaset:
     driver: bridge
+    attachable: true
   cassandra-cluster:
     driver: bridge
+    attachable: true
   cockroach-cluster:
     driver: bridge
+    attachable: true
 
 volumes:
   cockroach-certs:
@@ -103,34 +109,46 @@ services:
       - "1521:1521"
       - "2484:2484"
   cassandra:
-    # container_name: cassandra
     build:
       context: cassandra
     ports:
       - "9042:9042"
+    healthcheck: &casscheck
+      # check if the node can print cluster description and there are not any
+      # nodes marked UNREACHABLE in the cluster description.
+      test: ["CMD", "bash", "-c", "set -eo pipefail; nodetool describecluster | grep -v UNREACHABLE"]
+      start_period: 60s # period where failurse dont count against retry limit
+      start_interval: 5s # more rapid while failures dont count
+      interval: 15s # after start period, slow down in case bootstrap is taking a while
+      timeout: 10s # command timeout
+      retries: 5
+    environment:
+      - "HEAP_NEWSIZE=256M" # 1/4 of max heap
+      - "MAX_HEAP_SIZE=1024M" # should be less than the container limit with some good margin.
+    deploy: &cassdeploy
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 2G
   scylladb:
     # container_name: cassandra
     build:
       context: scylladb
     ports:
       - "9043:9042"
+# --- CASSANDRA CLUSTER START ---
   cassandra-cluster:
-    # image: cassandra:4
     build:
       context: cassandra-cluster
     depends_on:
-      # start this node second after the first is healthy.
+      # start the nodes one at a time after the seed node starts.
       cassandra-cluster-node:
         condition: "service_healthy"
     networks:
       - cassandra-cluster
     ports:
       - "9051:9042"
-    healthcheck: &casscheck
-      test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
-      interval: 5s
-      timeout: 5s
-      retries: 60
+    healthcheck: *casscheck
     environment: &cassenv # save env into "cassenv" to share it with all nodes
       - "CASSANDRA_LISTEN_ADDRESS=auto" # the default. listen on container's ip.
       - "CASSANDRA_CLUSTER_NAME=mycluster"
@@ -139,12 +157,14 @@ services:
       - "CASSANDRA_RACK=somerack"
       - "CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch"
       - "CASSANDRA_NUM_TOKENS=128"
+      - "HEAP_NEWSIZE=256M" # 1/4 of max heap
+      - "MAX_HEAP_SIZE=1024M" # should be less than the container limit with some good margin.
+    deploy: *cassdeploy
   cassandra-cluster-node:
-    # image: cassandra:4
     build:
       context: cassandra-cluster
     depends_on:
-      # start this node second after the first is healthy.
+      # start the nodes one at a time after the seed node starts.
       cassandra-cluster-seed:
         condition: "service_healthy"
     networks:
@@ -153,8 +173,8 @@ services:
       - "9052:9042"
     healthcheck: *casscheck # same health check for each node.
     environment: *cassenv # same env for each node.
+    deploy: *cassdeploy
   cassandra-cluster-seed:
-    # image: cassandra:4
     build:
       context: cassandra-cluster
     networks:
@@ -163,6 +183,7 @@ services:
       - "9053:9042"
     healthcheck: *casscheck # same health check for each node.
     environment: *cassenv # same env for each node.
+    deploy: *cassdeploy
   cockroach:
     build:
       context: cockroach

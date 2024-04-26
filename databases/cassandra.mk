@@ -5,8 +5,10 @@ $(DB): $(BUILD)/full-config.yaml $(BUILD)/certs ;
 $(BUILD)/full-config.yaml: $(DB)/default-config.yaml $(BUILD)/auth-config.yaml
 	@cat $^ > $@
 
-$(BUILD)/auth-config.yaml: $(BUILD)/certs ;
-	@cassandra/gen-auth-config.sh
+$(BUILD)/auth-config.yaml: CERTS:=$(BUILD)/certs
+$(BUILD)/auth-config.yaml: $(DB)/auth-config.yaml $(BUILD)/certs
+	@PASS=$(shell grep keystore_password $(CERTS)/tctl.result | cut -d \" -f2) \
+		envsubst '$${PASS}' < $< > $@
 
 $(BUILD)/certs:
 	@mkdir -p $@
