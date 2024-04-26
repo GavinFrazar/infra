@@ -11,7 +11,7 @@ $(DB)-proxy:
 
 .PHONY: $(DB)-hint
 $(DB)-hint:
-	@echo "Hint: the password for user alice is: 'somepassword' ;)"
+	@echo "Hint: run AUTH alice somepassword to authenticate"
 
 $(DB)-tsh-db-connect-flags := --db-user="alice" self-hosted-redis
 $(DB)-test-input := echo 'auth alice somepassword'
