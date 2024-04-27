@@ -26,80 +26,132 @@ services:
       context: postgres
     ports:
       - "5432:5432"
+    healthcheck: &healthdefault
+      # it can connect without a cert via the unix socket.
+      test: ["CMD", "psql", "user=alice database=postgres", "--command", "select 1"]
+      start_period: 60s # period where failures dont count against retry limit
+      start_interval: 5s # more rapid while failures dont count
+      interval: 15s # after start period, slow down in case bootstrap is taking a while
+      timeout: 10s # command timeout
+      retries: 5
+    deploy: &deploysmall
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
     restart: on-failure
   mysql:
     # container_name: mysql
     build:
       context: mysql
     environment:
-      - "MYSQL_RANDOM_ROOT_PASSWORD=yes"
+      - "MYSQL_ROOT_PASSWORD=iamroot"
     ports:
       - "3306:3306"
+    healthcheck:
+      <<: *healthdefault
+      test: ["CMD", "mysql", "-u", "root", "--password=iamroot", -e, "select 1"]
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M # mysql is greedy idk
     restart: on-failure
   mariadb:
     # container_name: mariadb
     build:
       context: mariadb
     environment:
-      - "MARIADB_RANDOM_ROOT_PASSWORD=yes"
+      - "MARIADB_ROOT_PASSWORD=iamroot"
     ports:
       - "3307:3306"
+    healthcheck:
+      <<: *healthdefault
+      test: ["CMD", "mariadb", "-u", "root", "--password=iamroot", -e, "select 1"]
+    deploy: *deploysmall
+    restart: on-failure
   mongodb:
     # container_name: mongodb
     build:
       context: mongodb
     ports:
       - "27017:27017"
+    # healthcheck nontrivial and not needed. Mongo starts instantly.
+    deploy: *deploysmall
+    restart: on-failure
   mongodb-replicaset:
     build:
       context: mongodb-replicaset/build/node-1
     networks:
       - "mongodb-replicaset"
     depends_on:
-      - mongodb-replicaset-node-1
-      - mongodb-replicaset-node-2
-      - mongodb-replicaset-node-3
+      mongodb-replicaset-node-1:
+        condition: "service_healthy"
+      mongodb-replicaset-node-2:
+        condition: "service_healthy"
+      mongodb-replicaset-node-3:
+        condition: "service_healthy"
     environment:
       - "HOST=${HOST}"
     command: >-
       bash /scripts/init.sh
+    deploy: *deploysmall
   mongodb-replicaset-node-1:
     build:
       context: mongodb-replicaset/build/node-1
     networks:
       - "mongodb-replicaset"
+    environment:
+      - "PORT=27021"
     ports:
       - "27021:27021"
+    healthcheck: &mongocheck
+      <<: *healthdefault
+      test: ["CMD", "bash", "-c", "mongosh --host=localhost:$$PORT --tls --tlsCertificateKeyFile=/certs/adminCertKey.pem --tlsCAFile=/certs/ca.crt --eval 'db.runCommand({ ping: 1 })'"]
     command: >-
+      bash -c
+      "mongod
       --config /etc/mongo/mongod.conf
       --replSet myReplicaSet
       --bind_ip localhost,mongodb-replicaset-node-1
-      --port 27021
+      --port $$PORT"
+    deploy: *deploysmall
   mongodb-replicaset-node-2:
     build:
       context: mongodb-replicaset/build/node-2
     networks:
       - "mongodb-replicaset"
+    environment:
+      - "PORT=27022"
     ports:
       - "27022:27022"
+    healthcheck: *mongocheck
     command: >-
+      bash -c
+      "mongod
       --config /etc/mongo/mongod.conf
       --replSet myReplicaSet
       --bind_ip localhost,mongodb-replicaset-node-2
-      --port 27022
+      --port $$PORT"
+    deploy: *deploysmall
   mongodb-replicaset-node-3:
-    # image: "mongo:5"
     build:
       context: mongodb-replicaset/build/node-3
     networks:
       - "mongodb-replicaset"
+    environment:
+      - "PORT=27023"
     ports:
       - "27023:27023"
+    healthcheck: *mongocheck
     command: >-
+      bash -c
+      "mongod
       --config /etc/mongo/mongod.conf
       --replSet myReplicaSet
       --bind_ip localhost,mongodb-replicaset-node-3
-      --port 27023
+      --port $$PORT"
+    deploy: *deploysmall
   oracle:
     # container_name: oracle
     build:
@@ -125,13 +177,13 @@ services:
       timeout: 10s # command timeout
       retries: 5
     environment:
-      - "HEAP_NEWSIZE=256M" # 1/4 of max heap
-      - "MAX_HEAP_SIZE=1024M" # should be less than the container limit with some good margin.
+      - "HEAP_NEWSIZE=512M" # 1/4 of max heap
+      - "MAX_HEAP_SIZE=2048M" # should be less than the container limit with some good margin.
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 2G
+          cpus: '2.0'
+          memory: 4G
     restart: on-failure
   cassandra:
     build:
@@ -215,6 +267,11 @@ services:
       - "9000:9000"
       - "8443:8443"
       - "9440:9440"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "512M"
   elasticsearch:
     build:
       context: elasticsearch
@@ -222,6 +279,19 @@ services:
       - "discovery.type=single-node"
     ports:
       - "9200:9200"
+    healthcheck:
+      <<: *healthdefault
+      test: ["CMD", "curl", "-k",
+      "--cert", "/usr/share/elasticsearch/config/certs/cert",
+      "--key", "/usr/share/elasticsearch/config/certs/key",
+      "-X", "GET",
+      "https://${HOST}:9200/_cluster/health?wait_for_status=green&timeout=60s"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+    restart: on-failure
   redis:
     build:
       context: redis
@@ -402,14 +472,14 @@ services:
     <<: *roachnode
     hostname: "cockroach-cluster"
     depends_on:
-      - "cockroach-node-1"
-      - "cockroach-node-2"
-      - "cockroach-node-3"
-      - "create-cockroach-cluster-ca"
+      - cockroach-node-1
+      - cockroach-node-2
+      - cockroach-node-3
+      - create-cockroach-cluster-ca
     ports: []
     command: >-
-      bash -c "
-      cockroach cert create-client root
+      bash -c
+      "cockroach cert create-client root
       --certs-dir=$$CA_DIR
       --ca-key=$$CA_DIR/ca.key &&
 
@@ -422,7 +492,9 @@ services:
     depends_on: []
     ports: []
     command: >-
-      bash -c "
+      bash -c
+      "cat $$CA_DIR/ca.crt ||
+
       cockroach cert create-ca
       --certs-dir=$$CA_DIR
       --ca-key=$$CA_DIR/ca.key"
@@ -434,10 +506,6 @@ services:
       - "26257:26257"
       - "8080:8080"
     healthcheck:
+      <<: *healthdefault
       test: ["CMD", "cockroach", "sql", "--certs-dir=/certs/out", "-e", "select 1"]
-      start_period: 60s
-      start_interval: 5s
-      interval: 15s
-      timeout: 10s
-      retries: 5
     deploy: *roachdeploy
