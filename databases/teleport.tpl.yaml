@@ -220,7 +220,7 @@ metadata:
     env: "dev"
 spec:
   protocol: "mongodb"
-  uri: "mongodb://${HOST}:27021"
+  uri: "mongodb://${HOST}:27021,${HOST}:27022,${HOST}:27023/?replicaSet=myReplicaSet"
   tls:
     # Point it to your Database CA PEM certificate.
     ca_cert: "${MONGO_CA_CERT}"

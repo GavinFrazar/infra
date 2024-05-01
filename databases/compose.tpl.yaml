@@ -77,7 +77,13 @@ services:
     ports:
       - "27017:27017"
     # healthcheck nontrivial and not needed. Mongo starts instantly.
-    deploy: *deploysmall
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          # mongo wiredTiger cache is not configurable below 256M, set a mem
+          # limit that keeps the cache alloc (256M) under 80% of total mem.
+          memory: "384M"
     restart: on-failure
   mongodb-replicaset:
     build:
@@ -318,8 +324,8 @@ services:
       - "REDISCLI_AUTH=somepassword"
       - "CERT_DIR=/usr/local/etc/redis/certs"
     command: >-
-      bash -c "
-      redis-cli
+      bash -c
+      "redis-cli
       --user alice
       --tls
       --cacert $$CERT_DIR/rootca.crt

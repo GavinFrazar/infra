@@ -60,7 +60,7 @@ $(NODES_CERTS): $(BUILD)/rootca | $(NODES_BUILD)
 	@openssl req \
 	 	-quiet \
 	 	-config ssl.conf \
-	 	-subj "/O=MongoDB" \
+	 	-subj "/CN=$(HOST)/O=MongoDB" \
 	 	-key $@/member.key \
 	 	-new -out $@/member.csr >/dev/null
 	@openssl x509 \
@@ -90,7 +90,7 @@ $(NODES_CONF): $(DB)/mongod-common.conf | $(NODES_BUILD)
 $(NODES_DOCKERFILE): $(DB)/Dockerfile | $(NODES_BUILD)
 	@cp $< $@
 
-$(NODES_SCRIPTS): $(addprefix $(DB)/scripts/,init.sh create_users.js) | $(NODES_BUILD)
+$(NODES_SCRIPTS): $(addprefix $(DB)/scripts/,init.sh create-admin.js create-alice.js) | $(NODES_BUILD)
 	@rm -rf $@
 	@mkdir -p $@
 	@cp $^ $@
