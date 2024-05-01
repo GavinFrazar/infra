@@ -28,7 +28,7 @@ services:
       - "5432:5432"
     healthcheck: &healthdefault
       # it can connect without a cert via the unix socket.
-      test: ["CMD", "psql", "user=alice database=postgres", "--command", "select 1"]
+      test: ["CMD", "psql", "user=alice dbname=postgres", "--command", "select 1"]
       start_period: 60s # period where failures dont count against retry limit
       start_interval: 5s # more rapid while failures dont count
       interval: 15s # after start period, slow down in case bootstrap is taking a while
