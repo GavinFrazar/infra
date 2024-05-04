@@ -9,7 +9,4 @@ resource "aws_redshift_cluster" "this" {
   cluster_type           = "single-node"
   skip_final_snapshot    = true
   publicly_accessible    = true
-  tags = {
-    "teleport.dev/matcher_type" = "redshift"
-  }
 }

@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "gha_db_admin" {
       "rds:DescribeDBInstances",
     ]
     resources = [
-      # module.e2e_tests.rds.mariadb_instance_arn,
+      module.e2e_tests.rds.mariadb_instance_arn,
       module.e2e_tests.rds.mysql_instance_arn,
       module.e2e_tests.rds.postgres_instance_arn,
     ]
@@ -30,15 +30,27 @@ data "aws_iam_policy_document" "gha_db_admin" {
   # }
 
   statement {
+    sid    = "AllowRedshiftSecretsDiscovery"
+    effect = "Allow"
+    actions = [
+      "redshift:DescribeClusters",
+    ]
+    resources = [
+      module.e2e_tests.redshift_cluster.cluster_arn,
+    ]
+  }
+
+  statement {
     sid    = "AllowDBSecretsAccess"
     effect = "Allow"
     actions = [
       "secretsmanager:GetSecretValue",
     ]
     resources = [
-      # module.e2e_tests.rds.mariadb_master_user_secret_arn,
+      module.e2e_tests.rds.mariadb_master_user_secret_arn,
       module.e2e_tests.rds.mysql_master_user_secret_arn,
       module.e2e_tests.rds.postgres_master_user_secret_arn,
+      module.e2e_tests.redshift_cluster.master_user_secret_arn,
       # module.e2e_tests.rds_aurora_mysql.master_user_secret_arn,
     ]
   }

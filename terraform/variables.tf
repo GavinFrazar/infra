@@ -8,7 +8,7 @@ variable "enabled" {
     aws_vpc                 = false
     azure_mysql             = false
     databases_host          = false
-    e2e_tests               = false
+    e2e_tests               = true
     gcp_spanner             = true
     kube                    = false
   }

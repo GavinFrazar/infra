@@ -119,7 +119,9 @@ module "gcp_iam_spanner" {
 }
 
 module "e2e_tests" {
-  source                           = "/Users/gavin/code/cloud-terraform//aws/modules/databases-ci"
+  source = "/Users/gavin/code/cloud-terraform//aws/modules/databases-ci"
+
+  # create                           = local.create_e2e_tests
   public_access_ip_ranges          = local.public_access_ip_ranges
   vpc_cidr                         = "10.0.0.0/20"
   name_prefix                      = "ci-database-e2e-tests"

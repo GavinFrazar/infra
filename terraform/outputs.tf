@@ -26,7 +26,6 @@ output "aws_db_iam_roles" {
   description = "AWS IAM Roles that Teleport users can use for databases."
   value = compact([
     module.aws_iam_redshift_serverless_user.role_arn,
-    module.gha_db_admin.role_arn,
   ])
 }
 
@@ -63,4 +62,10 @@ output "client_info" {
       "identity" = data.google_client_openid_userinfo.this.id,
     },
   }
+}
+
+output "zzz_testing" {
+  value = merge(module.e2e_tests, {
+    "fake-ci-role" = module.gha_db_admin.role_arn,
+  })
 }
