@@ -37,7 +37,7 @@ DATABASES := $(shell fd -HI --type directory --min-depth=1 --max-depth=1 . -x ba
 DATABASES_PAT = $(addsuffix -$@,$(DATABASES))
 CONFIG_FILES := $(shell fd -HI . $(DATABASES))
 
-DOCKER := DOCKER_HOST=$(DOCKER_HOST) /opt/homebrew/bin/docker
+DOCKER := DOCKER_HOST=$(DOCKER_HOST) docker
 DOCKER_COMPOSE := $(DOCKER) compose
 # wait for healthy services and then detach
 COMPOSE_UP_CMD := $(DOCKER_COMPOSE) up --build --detach --wait
