@@ -13,7 +13,7 @@ resource "aws_iam_policy" "discovery" {
   name        = local.discovery_name
   path        = "/"
   description = "IAM policy for Teleport RDS database discovery"
-  policy      = one(data.aws_iam_policy_document.access[*].json)
+  policy      = one(data.aws_iam_policy_document.discovery[*].json)
 }
 
 module "access" {

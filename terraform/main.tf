@@ -114,16 +114,17 @@ module "gcp_iam_spanner" {
   create                 = local.create_gcp_spanner_iam
   source                 = "./modules/gcp-iam-spanner"
   namespace              = local.namespace
-  spanner_instance_names = [module.gcp_spanner.instance_name, "gavin-spanner"]
+  spanner_instance_names = [module.gcp_spanner.instance_name]
   trusted_impersonators  = local.trusted_impersonators
 }
 
 module "e2e_tests" {
+  count  = local.create_e2e_tests ? 1 : 0
   source = "/Users/gavin/code/cloud-terraform//aws/modules/databases-ci"
 
   # create                           = local.create_e2e_tests
   public_access_ip_ranges          = local.public_access_ip_ranges
   vpc_cidr                         = "10.0.0.0/20"
   name_prefix                      = "ci-database-e2e-tests"
-  role_trust_policy_principal_arns = concat(local.trusted_role_arns, [module.gha_db_admin.role_arn])
+  role_trust_policy_principal_arns = concat(local.trusted_role_arns, [module.gha_db_admin[0].role_arn])
 }

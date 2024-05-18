@@ -18,14 +18,12 @@ resource "google_spanner_database" "googlesql" {
   instance = google_spanner_instance.this[0].name
   name     = "${var.namespace}-googlesql"
   ddl = [
-  <<-EOF
-  CREATE TABLE Singers (
-    SingerId   INT64 NOT NULL,
+    <<-EOF
+  CREATE TABLE People (
+    ID   INT64 NOT NULL,
     FirstName  STRING(1024),
     LastName   STRING(1024),
-    SingerInfo BYTES(MAX),
-    BirthDate  DATE,
-  ) PRIMARY KEY(SingerId)
+  ) PRIMARY KEY(ID)
   EOF
   ]
   database_dialect    = "GOOGLE_STANDARD_SQL"
@@ -40,50 +38,12 @@ resource "google_spanner_database" "postgresql" {
   ddl = [
     <<-EOF
     CREATE TABLE Singers (
-        BirthDate  TIMESTAMPTZ,
-        SingerId   BIGINT PRIMARY KEY,
+        ID   BIGINT PRIMARY KEY,
         FirstName  VARCHAR(1024),
-        LastName   VARCHAR(1024),
-        SingerInfo BYTEA
+        LastName   VARCHAR(1024)
     );
     EOF
   ]
   database_dialect    = "POSTGRESQL"
   deletion_protection = false
-}
-
-resource "null_resource" "insert_googlesql_data" {
-  count = var.create ? 1 : 0
-
-  depends_on = [
-    google_spanner_database.googlesql[0],
-  ]
-
-  provisioner "local-exec" {
-    command = <<EOF
-gcloud spanner databases execute-sql ${google_spanner_database.googlesql[0].name} \
-  --instance=${google_spanner_instance.this[0].name} \
-  --sql="INSERT INTO Singers (SingerId, FirstName, LastName) VALUES
-        (1, 'Adele', 'Adkins'),
-        (2, 'Taylor', 'Swift')"
-EOF
-  }
-}
-
-resource "null_resource" "insert_postgresql_data" {
-  count = var.create ? 1 : 0
-
-  depends_on = [
-    google_spanner_database.postgresql,
-  ]
-
-  provisioner "local-exec" {
-    command = <<EOF
-gcloud spanner databases execute-sql ${google_spanner_database.postgresql[0].name} \
-  --instance=${google_spanner_instance.this[0].name} \
-  --sql="INSERT INTO Singers (SingerId, FirstName, LastName) VALUES
-        (1, 'Adele', 'Adkins'),
-        (2, 'Taylor', 'Swift')"
-EOF
-  }
 }

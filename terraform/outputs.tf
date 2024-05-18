@@ -65,7 +65,7 @@ output "client_info" {
 }
 
 output "zzz_testing" {
-  value = merge(module.e2e_tests, {
+  value = try(merge(module.e2e_tests[0], {
     "fake-ci-role" = module.gha_db_admin.role_arn,
-  })
+  }), {})
 }

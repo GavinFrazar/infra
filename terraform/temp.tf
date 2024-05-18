@@ -1,10 +1,12 @@
 resource "aws_iam_policy" "gha_db_admin" {
+  count  = local.create_e2e_tests ? 1 : 0
   name   = "ci-database-e2e-tests-db-admin-access"
   path   = "/"
-  policy = data.aws_iam_policy_document.gha_db_admin.json
+  policy = data.aws_iam_policy_document.gha_db_admin[0].json
 }
 
 data "aws_iam_policy_document" "gha_db_admin" {
+  count = local.create_e2e_tests ? 1 : 0
   statement {
     sid    = "AllowRDSSecretsDiscovery"
     effect = "Allow"
@@ -12,9 +14,9 @@ data "aws_iam_policy_document" "gha_db_admin" {
       "rds:DescribeDBInstances",
     ]
     resources = [
-      module.e2e_tests.rds.mariadb_instance_arn,
-      module.e2e_tests.rds.mysql_instance_arn,
-      module.e2e_tests.rds.postgres_instance_arn,
+      module.e2e_tests[0].rds.mariadb_instance_arn,
+      module.e2e_tests[0].rds.mysql_instance_arn,
+      module.e2e_tests[0].rds.postgres_instance_arn,
     ]
   }
 
@@ -36,7 +38,7 @@ data "aws_iam_policy_document" "gha_db_admin" {
       "redshift:DescribeClusters",
     ]
     resources = [
-      module.e2e_tests.redshift_cluster.cluster_arn,
+      module.e2e_tests[0].redshift_cluster.cluster_arn,
     ]
   }
 
@@ -47,16 +49,17 @@ data "aws_iam_policy_document" "gha_db_admin" {
       "secretsmanager:GetSecretValue",
     ]
     resources = [
-      module.e2e_tests.rds.mariadb_master_user_secret_arn,
-      module.e2e_tests.rds.mysql_master_user_secret_arn,
-      module.e2e_tests.rds.postgres_master_user_secret_arn,
-      module.e2e_tests.redshift_cluster.master_user_secret_arn,
+      module.e2e_tests[0].rds.mariadb_master_user_secret_arn,
+      module.e2e_tests[0].rds.mysql_master_user_secret_arn,
+      module.e2e_tests[0].rds.postgres_master_user_secret_arn,
+      module.e2e_tests[0].redshift_cluster.master_user_secret_arn,
       # module.e2e_tests.rds_aurora_mysql.master_user_secret_arn,
     ]
   }
 }
 
 module "gha_db_admin" {
+  count                   = local.create_e2e_tests ? 1 : 0
   create                  = true
   source                  = "./modules/create-aws-iam-role"
   name                    = "ci-database-e2e-tests-db-admin-access"
