@@ -11,6 +11,13 @@ resource "aws_key_pair" "ssh" {
 #   namespace = local.namespace
 # }
 
+module "teleport_db_service_aws_iam" {
+  create                  = local.create_aws_iam_redshift_serverless
+  source                  = "./modules/teleport-databases-iam"
+  namespace               = local.namespace
+  trust_policy_principals = local.trusted_role_arns
+}
+
 module "aws_iam_rds" {
   create                  = local.create_aws_iam_rds
   source                  = "./modules/aws-iam-rds"
