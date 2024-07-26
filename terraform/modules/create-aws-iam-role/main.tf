@@ -13,4 +13,3 @@ resource "aws_iam_role_policy_attachment" "this" {
   role       = one(aws_iam_role.this[*].name)
   policy_arn = var.permissions_policy_arn
 }
-

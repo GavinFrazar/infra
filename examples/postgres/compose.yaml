@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: "postgres:16"
+    networks:
+      - "example"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      # it can connect without a cert via the unix socket.
+      test:
+        [
+          "CMD",
+          "psql",
+          "user=teleport dbname=postgres",
+          "--command",
+          "select 1",
+        ]
+      start_period: "60s" # period where failures dont count against retry limit
+      start_interval: "5s" # more rapid while failures dont count
+      interval: "15s" # after start period, slow down in case bootstrap is taking a while
+      timeout: "10s" # command timeout
+      retries: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+    restart: "on-failure"
+    environment:
+      - "POSTGRES_DB=postgres"
+      - "POSTGRES_USER=teleport"
+      - "POSTGRES_PASSWORD=irrelevant"
+    #   - "PGDATA=/var/lib/postgresql/data/pgdata"
+    volumes:
+      - "./pg_hba.conf:/etc/postgresql/pg_hba.conf:ro"
+      - "./postgresql.conf:/etc/postgresql/postgresql.conf:ro"
+      - "./certs:/certs:ro"
+    command: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
+  teleport-db-service:
+    image: "public.ecr.aws/gravitational/teleport-distroless-debug:16.0.4"
+    dns:
+      - "1.1.1.1"
+    networks:
+      - "example"
+    volumes:
+      - "teleport-agent-data:/var/lib/teleport"
+      - "./teleport-agent-config.yaml:/etc/teleport/teleport.yaml"
+      - "./static-join-token:/static-join-token"
+
+networks:
+  example:
+    driver: "bridge"
+    # allow standalone containers to attach to this network.
+    # useful to debug network issues.
+    attachable: true
+
+volumes:
+  teleport-agent-data:

@@ -5,7 +5,7 @@ metadata:
   name: "debug-db"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "redis"
@@ -23,7 +23,7 @@ metadata:
   name: "self-hosted-postgres"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "postgres"
@@ -35,9 +35,9 @@ metadata:
   name: "self-hosted-postgres-auto-user"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
-    "db-users": "auto"
+    auto-db-users: "postgres"
 spec:
   protocol: "postgres"
   uri: "${HOST}:5432"
@@ -50,7 +50,7 @@ metadata:
   name: "self-hosted-mysql"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "mysql"
@@ -62,7 +62,7 @@ metadata:
   name: "self-hosted-mariadb"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "mysql"
@@ -75,8 +75,21 @@ metadata:
   name: "self-hosted-mongodb"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
+spec:
+  protocol: "mongodb"
+  uri: "${HOST}:27017"
+---
+kind: db
+version: v3
+metadata:
+  name: "self-hosted-mongodb-auto-user"
+  description: "Example dyn database resource"
+  labels:
+    host: "${HOST}"
+    env: "dev"
+    auto-db-users: "mongodb"
 spec:
   protocol: "mongodb"
   uri: "${HOST}:27017"
@@ -89,7 +102,7 @@ metadata:
   name: "self-hosted-oracle"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "oracle"
@@ -101,7 +114,7 @@ metadata:
   name: "self-hosted-cassandra"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "cassandra"
@@ -113,7 +126,7 @@ metadata:
   name: "self-hosted-cassandra-cluster"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "cassandra"
@@ -125,7 +138,7 @@ metadata:
   name: "self-hosted-scylladb"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "cassandra"
@@ -138,7 +151,7 @@ metadata:
   name: "self-hosted-cockroach"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "cockroachdb"
@@ -150,7 +163,7 @@ metadata:
   name: "self-hosted-clickhouse-http"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "clickhouse-http"
@@ -162,7 +175,7 @@ metadata:
   name: "self-hosted-clickhouse-native"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "clickhouse"
@@ -174,7 +187,7 @@ metadata:
   name: "self-hosted-elasticsearch"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "elasticsearch"
@@ -186,7 +199,7 @@ metadata:
   name: "self-hosted-redis"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "redis"
@@ -198,7 +211,7 @@ metadata:
   name: "self-hosted-redis-cluster"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "redis"
@@ -216,7 +229,7 @@ metadata:
   name: "self-hosted-mongodb-replicaset"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "mongodb"
@@ -234,7 +247,7 @@ metadata:
   name: "self-hosted-cockroach-cluster"
   description: "Example dyn database resource"
   labels:
-    host: "mbp"
+    host: "${HOST}"
     env: "dev"
 spec:
   protocol: "cockroachdb"

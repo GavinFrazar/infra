@@ -4,8 +4,8 @@ variable "create" {
   default     = true
 }
 
-variable "namespace" {
-  description = "Namespace for resource names."
+variable "name_prefix" {
+  description = "name prefix for resource names."
   type        = string
   nullable    = false
 }

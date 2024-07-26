@@ -1,0 +1,33 @@
+version: v3
+teleport:
+  nodename: "docker"
+  log:
+    output: "stdout"
+    severity: "DEBUG"
+    format:
+      output: "text"
+  join_params:
+    token_name: "/static-join-token"
+    method: "token"
+  proxy_server: "alpha.devteleport.com:443"
+db_service:
+  enabled: true
+  databases:
+  - name: "self-hosted-postgres-example"
+    protocol: "postgres"
+    uri: "postgres:5432"
+    static_labels:
+      "env": "teleport-examples"
+  - name: "postgres-rds"
+    protocol: "postgres"
+    uri: "postgres-rds.cm0eujenwcyi.us-west-1.rds.amazonaws.com:5432"
+    static_labels:
+      "env": "teleport-examples"
+
+# disable services that are enabled by default.
+auth_service:
+  enabled: false
+proxy_service:
+  enabled: false
+ssh_service:
+  enabled: false

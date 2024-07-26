@@ -1,0 +1,29 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "RDSAutoEnableIAMAuth",
+            "Effect": "Allow",
+            "Action": [
+                "rds:ModifyDBCluster",
+                "rds:ModifyDBInstance"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "RDSConnect",
+            "Effect": "Allow",
+            "Action": "rds-db:connect",
+            "Resource": "*"
+        },
+        {
+            "Sid": "RDSFetchMetadata",
+            "Effect": "Allow",
+            "Action": [
+                "rds:DescribeDBClusters",
+                "rds:DescribeDBInstances"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

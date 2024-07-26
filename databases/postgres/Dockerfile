@@ -13,7 +13,7 @@ RUN chown -R postgres:postgres \
 
 # Set environment variables for the database
 ENV POSTGRES_DB=postgres
-ENV POSTGRES_USER=alice
+ENV POSTGRES_USER=teleport-admin
 ENV POSTGRES_PASSWORD=soopersekrit
 
 # Expose the PostgreSQL port

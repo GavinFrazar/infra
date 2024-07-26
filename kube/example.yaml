@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: example
+spec:
+  containers:
+  - name: example
+    image: 651149123960.dkr.ecr.ca-central-1.amazonaws.com/gavin-tf:nginx-latest
+    imagePullPolicy: "Always"
+    command: ["/bin/sh"]
+    args: ["-c", "echo hello world 1>&2"]

@@ -37,7 +37,7 @@ resource "google_spanner_database" "postgresql" {
   name     = "${var.namespace}-postgresql"
   ddl = [
     <<-EOF
-    CREATE TABLE Singers (
+    CREATE TABLE People (
         ID   BIGINT PRIMARY KEY,
         FirstName  VARCHAR(1024),
         LastName   VARCHAR(1024)

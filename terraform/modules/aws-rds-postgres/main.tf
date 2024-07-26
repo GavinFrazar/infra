@@ -1,4 +1,5 @@
 module "postgres" {
+  count   = var.create ? 1 : 0
   source  = "terraform-aws-modules/rds/aws"
   version = "~> 6.1"
 
@@ -20,8 +21,8 @@ module "postgres" {
   max_allocated_storage = 20
 
   db_subnet_group_name   = var.subnet_group_name
-  vpc_security_group_ids = var.vpc_security_group_ids
-  publicly_accessible    = var.allow_public_access
+  vpc_security_group_ids = aws_security_group.postgres[*].id
+  publicly_accessible    = local.allow_public_access
   port                   = var.postgres_port
   multi_az               = false
 
@@ -34,4 +35,24 @@ module "postgres" {
   create_cloudwatch_log_group  = false
 
   tags = var.tags
+}
+
+resource "aws_security_group" "postgres" {
+  count = var.create ? 1 : 0
+
+  name        = "${var.name_prefix}-postgres-sg"
+  description = "RDS Postgres security group"
+  vpc_id      = var.vpc_id
+
+  tags = var.tags
+}
+
+resource "aws_vpc_security_group_ingress_rule" "postgres" {
+  count = var.create ? length(local.allow_public_access_from_cidrs) : 0
+
+  security_group_id = one(aws_security_group.postgres[*].id)
+  cidr_ipv4         = local.allow_public_access_from_cidrs[count.index]
+  ip_protocol       = "tcp"
+  from_port         = var.postgres_port
+  to_port           = var.postgres_port
 }
