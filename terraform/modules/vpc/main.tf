@@ -14,13 +14,13 @@ module "this" {
   manage_default_security_group = true # default. do not use, but prevent drift.
   map_public_ip_on_launch       = true
   name                          = "${var.namespace}-vpc"
-  private_dedicated_network_acl = true
   public_dedicated_network_acl  = true
   public_subnet_tags            = { "kubernetes.io/role/elb" = "1" }
   public_subnets                = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i)]
+  private_dedicated_network_acl = true
   private_subnets               = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i + length(var.az_names))]
   private_subnet_tags           = { "kubernetes.io/role/internal-elb" = "1" }
-  single_nat_gateway            = true
+  single_nat_gateway = true
 
   # set up database intra VPC subnets:
   database_subnets                       = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i + 2 * length(var.az_names))]

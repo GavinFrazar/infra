@@ -23,6 +23,7 @@ module "aws_rds_postgres" {
   name_prefix                    = local.namespace
   subnet_group_name              = module.vpc.database_subnet_group_name
   vpc_id                         = module.vpc.id
+  tags                           = merge(local.aws_default_tags, local.db_admin_tag)
 }
 
 module "aws_iam_combined" {
@@ -150,6 +151,7 @@ module "teleport_eks" {
   ecr_repo         = module.aws_ecr.repository_url
   eks_cluster_name = module.eks.id
   name_prefix      = local.namespace
+  tags             = local.aws_default_tags
 }
 
 module "temporal" {

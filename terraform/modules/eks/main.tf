@@ -15,6 +15,46 @@ module "addons" {
   ]
 }
 
+# setup the EKS cluster
+resource "aws_eks_cluster" "this" {
+  count = var.create ? 1 : 0
+
+  enabled_cluster_log_types = [
+    "api",
+    "audit",
+    "authenticator",
+  ]
+  name     = "${var.name_prefix}-eks"
+  role_arn = try(aws_iam_role.eks_cluster[0].arn, "")
+  tags     = var.tags
+  version  = var.cluster_version
+
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    bootstrap_cluster_creator_admin_permissions = false
+  }
+
+  kubernetes_network_config {
+    ip_family         = "ipv4"
+    service_ipv4_cidr = "10.42.0.0/16"
+  }
+
+  vpc_config {
+    endpoint_private_access = true # TODO: set to false
+    endpoint_public_access  = true # TODO: set to false after deploying teleport.
+    public_access_cidrs     = local.public_access_ip_ranges
+    security_group_ids      = aws_security_group.this[*].id
+    subnet_ids              = var.subnet_ids
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.worker,
+    aws_iam_role_policy_attachment.registry,
+    aws_iam_role_policy_attachment.cni,
+    aws_iam_role_policy_attachment.eks_cluster,
+  ]
+}
+
 # setup an IAM OIDC connect provider for pod AWS credentials
 resource "aws_iam_openid_connect_provider" "this" {
   count = var.create ? 1 : 0
@@ -67,46 +107,6 @@ resource "aws_eks_access_policy_association" "cluster_admin" {
   ]
 }
 
-# setup the EKS cluster
-resource "aws_eks_cluster" "this" {
-  count = var.create ? 1 : 0
-
-  enabled_cluster_log_types = [
-    "api",
-    "audit",
-    "authenticator",
-  ]
-  name     = "${var.name_prefix}-eks"
-  role_arn = try(aws_iam_role.eks_cluster[0].arn, "")
-  tags     = var.tags
-  version  = var.cluster_version
-
-  access_config {
-    authentication_mode                         = "API_AND_CONFIG_MAP"
-    bootstrap_cluster_creator_admin_permissions = false
-  }
-
-  kubernetes_network_config {
-    ip_family         = "ipv4"
-    service_ipv4_cidr = "10.42.0.0/16"
-  }
-
-  vpc_config {
-    endpoint_private_access = true # TODO: set to false
-    endpoint_public_access  = true # TODO: set to false after deploying teleport.
-    public_access_cidrs     = local.public_access_ip_ranges
-    security_group_ids      = aws_security_group.this[*].id
-    subnet_ids              = var.subnet_ids
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.worker,
-    aws_iam_role_policy_attachment.registry,
-    aws_iam_role_policy_attachment.cni,
-    aws_iam_role_policy_attachment.eks_cluster,
-  ]
-}
-
 # NOTE: this is the "additional security group" for the EKS cluster, which
 # controls communication between the control plane and compute resources
 # in AWS. I can use this to attach additional rules since it takes 10+ minutes
@@ -146,18 +146,23 @@ resource "aws_eks_node_group" "this" {
   count = var.create ? 1 : 0
 
   # for defaults below, I just want drift detection.
+  ami_type        = "AL2_x86_64"
   capacity_type   = "ON_DEMAND" # default
-  disk_size       = 20          # default for linux AMIs
   cluster_name    = aws_eks_cluster.this[0].id
+  node_group_name = "${var.name_prefix}-node-group"
   node_role_arn   = aws_iam_role.node[0].arn
-  node_group_name = "${var.name_prefix}-ng"
   subnet_ids      = var.subnet_ids
   tags            = var.tags
 
+  launch_template {
+    id      = one(aws_launch_template.this[*].id)
+    version = coalesce(one(aws_launch_template.this[*].default_version), "$Default")
+  }
+
   scaling_config {
-    desired_size = 2
+    desired_size = 1
     max_size     = 2
-    min_size     = 2
+    min_size     = 1
   }
 
   update_config {
@@ -172,11 +177,14 @@ resource "aws_eks_node_group" "this" {
   ]
 }
 
-resource "aws_launch_template" "example" {
+resource "aws_launch_template" "this" {
+  count = var.create ? 1 : 0
+
   name_prefix   = var.name_prefix
   ebs_optimized = true
-  image_id      = local.launch_amis["teleport-dev-2"]["ca-central-1"]
+  # image_id      = local.launch_amis["teleport-dev-2"]["ca-central-1"]
   instance_type = "t3.medium"
+  # user_data     = local.user_data
 
   network_interfaces {
     # if this is true, then the node subnet(s) need a rotue to an IGW.
@@ -188,9 +196,12 @@ resource "aws_launch_template" "example" {
     create_before_destroy = true
   }
 
-  tag_specifications {
-    resource_type = "instance"
-    tags          = var.tags
+  dynamic "tag_specifications" {
+    for_each = ["instance", "volume", "network-interface", "spot-instances-request"]
+    content {
+      resource_type = tag_specifications.value
+      tags          = var.tags
+    }
   }
 
   metadata_options {
@@ -200,6 +211,10 @@ resource "aws_launch_template" "example" {
     http_endpoint               = "enabled"
     http_put_response_hop_limit = 1
     http_tokens                 = "required"
+    # if I enable this, it disallows tag keys with "/" in it, breaking the
+    # "teleport.dev/creator" tag.
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html#tag-restrictions
+    instance_metadata_tags = "disabled"
   }
 }
 

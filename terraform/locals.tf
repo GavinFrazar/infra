@@ -1,7 +1,8 @@
 locals {
   # --- naming ---
-  name      = "gavin"
-  namespace = "${local.name}-tf"
+  name              = "gavin"
+  namespace         = "${local.name}-tf"
+  teleport_db_admin = "teleport-admin"
 
   # --- tags ---
   default_tags = {
@@ -14,6 +15,9 @@ locals {
   })
   gcp_default_tags = merge(local.default_tags, {
   })
+  db_admin_tag = {
+    "teleport.dev/db-admin" = local.teleport_db_admin
+  }
 
   # --- me ---
   my_ip             = chomp(data.http.my_ip.response_body)
