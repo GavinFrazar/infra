@@ -287,11 +287,13 @@ services:
       - "9200:9200"
     healthcheck:
       <<: *healthdefault
-      test: ["CMD", "curl", "-k",
-      "--cert", "/usr/share/elasticsearch/config/certs/cert",
-      "--key", "/usr/share/elasticsearch/config/certs/key",
-      "-X", "GET",
-      "https://${HOST}:9200/_cluster/health?wait_for_status=green&timeout=60s"]
+      test: [
+        "CMD", "curl", "-k",
+        "--cert", "/usr/share/elasticsearch/config/certs/cert",
+        "--key", "/usr/share/elasticsearch/config/certs/key",
+        "-X", "GET",
+        "https://${HOST}:9200/_cluster/health?wait_for_status=green&timeout=60s"
+      ]
     deploy:
       resources:
         limits:
