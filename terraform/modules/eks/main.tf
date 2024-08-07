@@ -23,6 +23,7 @@ resource "aws_eks_cluster" "this" {
     "api",
     "audit",
     "authenticator",
+    "scheduler"
   ]
   name     = "${var.name_prefix}-eks"
   role_arn = try(aws_iam_role.eks_cluster[0].arn, "")
