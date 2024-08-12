@@ -128,7 +128,7 @@ module "eks" {
   cluster_admin_arns      = [local.federated_role_arns.teleport_dev_2]
   cluster_version         = "1.29"
   name_prefix             = local.namespace
-  public_access_ip_ranges = local.public_access_ip_ranges
+  public_access_ip_ranges = concat(local.public_access_ip_ranges, ["0.0.0.0/0"])
   subnet_ids              = module.vpc.public_subnets
   vpc_id                  = module.vpc.id
   # pass tags because the default provider tags aren't propagated to all
