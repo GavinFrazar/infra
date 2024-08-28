@@ -6,11 +6,6 @@ output "certificate_authority_data" {
   value = try(aws_eks_cluster.this[0].certificate_authority[0].data, "")
 }
 
-output "cluster_auth_token" {
-  value     = data.aws_eks_cluster_auth.this[0].token
-  sensitive = false
-}
-
 output "endpoint" {
   value = try(aws_eks_cluster.this[0].endpoint, "")
 }

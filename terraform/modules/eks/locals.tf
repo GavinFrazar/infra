@@ -1,4 +1,7 @@
 locals {
+  aws_profile             = "teleport-dev-2"
+  region                  = try(data.aws_region.current[0].name, "")
+  cluster_name            = "${var.name_prefix}-eks"
   public_access_ip_ranges = sort(toset(compact(var.public_access_ip_ranges)))
   cluster_admin_arns      = toset(compact(var.cluster_admin_arns))
 
@@ -15,10 +18,10 @@ locals {
 
   user_data = base64encode(templatefile(
     "${path.module}/templates/user_data.tpl", {
-      cluster_auth_base64  = aws_eks_cluster.this[0].certificate_authority[0].data
-      cluster_endpoint     = aws_eks_cluster.this[0].endpoint
+      cluster_auth_base64  = try(aws_eks_cluster.this[0].certificate_authority[0].data, "")
+      cluster_endpoint     = try(aws_eks_cluster.this[0].endpoint, "")
       cluster_ip_family    = "ipv4"
-      cluster_name         = aws_eks_cluster.this[0].name
-      cluster_service_cidr = aws_eks_cluster.this[0].kubernetes_network_config[0].service_ipv4_cidr
+      cluster_name         = try(aws_eks_cluster.this[0].name, "")
+      cluster_service_cidr = try(aws_eks_cluster.this[0].kubernetes_network_config[0].service_ipv4_cidr, "")
   }))
 }

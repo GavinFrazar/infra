@@ -1,21 +1,27 @@
 variable "enabled" {
   description = "Submodules that are enabled by default."
-  type        = map(bool)
+  type        = map(map(bool))
 
   default = {
-    aws_ci_e2e_test         = false
-    aws_databases_host      = false
-    aws_ecr                 = true
-    aws_eks                 = true
-    aws_rds_postgres        = true
-    aws_redshift            = false
-    aws_redshift_serverless = false
-    aws_vpc                 = false
+    aws = {
+      ci_e2e_test         = false
+      databases_host      = false
+      ecr                 = true
+      eks                 = true
+      eks_addons          = true
+      rds_postgres        = true
+      redshift            = false
+      redshift_serverless = false
+      vpc                 = true
+    }
 
-    gcp_spanner = false
+    gcp = {
+      spanner = false
+      kube    = false
+    }
 
-    azure_mysql = false
-
-    kube        = false
+    azure = {
+      mysql = false
+    }
   }
 }

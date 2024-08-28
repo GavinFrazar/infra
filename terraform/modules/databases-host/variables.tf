@@ -29,8 +29,8 @@ variable "ami_id" {
   type        = string
   description = "the AMI to use to provision up Teleport instances"
   # default     = "ami-014d05e6b24240371" // Ubuntu 22.04 in us-west-1
-  default     = "ami-08116b9957a259459" // Ubuntu 22.04 in us-west-2
-  nullable    = false
+  default  = "ami-08116b9957a259459" // Ubuntu 22.04 in us-west-2
+  nullable = false
 }
 
 variable "ec2_instance_type" {

@@ -1,6 +1,5 @@
 variable "oidc_provider_arn" {
-  type     = string
-  nullable = false
+  type = string
 }
 
 variable "cluster_name" {
@@ -12,19 +11,16 @@ variable "create" {
   description = "Determines whether to create the resources"
   type        = bool
   default     = true
-  nullable    = false
 }
 
 variable "name_prefix" {
   description = "The prefix to use for created resource names"
   type        = string
-  nullable    = false
 }
 
 variable "oidc_domain" {
   type        = string
   description = "EKS cluster OIDC issuer domain"
-  nullable    = false
 }
 
 variable "tags" {

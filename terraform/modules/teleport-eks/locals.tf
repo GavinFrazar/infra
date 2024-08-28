@@ -1,13 +1,13 @@
 locals {
   # namespaces
-  dns_zone = one(data.aws_route53_zone.this[*].name)
+  dns_zone = try(data.aws_route53_zone.this[0].name, "")
   clusters = {
     "alpha" = {
-      helm_chart_version = "16.0.4"
+      helm_chart_version = "16.2.0"
       service_type       = "alb"
     }
     "beta" = {
-      helm_chart_version = "14.3.3"
+      helm_chart_version = "16.2.0"
       service_type       = "nlb"
     }
   }
@@ -26,11 +26,10 @@ locals {
     "devteleport.com" = "Z0470569HNIGRA6FOGBH"
   }
   # hardcoded to a hosted zone in teleport-dev-2 account.
-  hosted_zone = "devteleport.com"
-  # TODO: update the alpha cluster tag annotations to just pass var.tags.
+  hosted_zone           = "devteleport.com"
   tags_annotation_value = join(",", [for k, v in var.tags : "${k}=${v}"])
 
-  cluster_values = {
+  cluster_values = var.create ? {
     "alpha" = <<EOF
 clusterName: ${local.cluster_fqdn["alpha"]}
 proxyListenerMode: multiplex
@@ -46,8 +45,8 @@ annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/ssl-redirect: '443'
     alb.ingress.kubernetes.io/success-codes: 200,301,302
-    alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/tags: ${local.tags_annotation_value}
+    alb.ingress.kubernetes.io/target-type: ip
 ingress:
   enabled: true
   spec:
@@ -80,33 +79,33 @@ proxy:
       role: "proxy"
 
 enterprise: true
-enterpriseImage: ${var.ecr_repo}
-# enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
+# enterpriseImage: ${var.ecr_repo}
+enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
 # Optional array of imagePullSecrets, to use when pulling from a private registry
 imagePullSecrets: []
-# teleportVersionOverride: ""
-teleportVersionOverride: "17.0.0-dev"
+teleportVersionOverride: ""
+# teleportVersionOverride: "17.0.0-dev"
 imagePullPolicy: Always
 EOF
 
     "beta" = <<EOF
 clusterName: ${local.cluster_fqdn["beta"]}
-proxyListenerMode: "separate"
+proxyListenerMode: "multiplex"
 
 # ingress
 # acme: true
 # acmeEmail: "gavin.frazar@goteleport.com"
 annotations:
   service:
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+    service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "${local.tags_annotation_value}"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "ssl"
     service.beta.kubernetes.io/aws-load-balancer-internal: "false"
     service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "ipv4"
     service.beta.kubernetes.io/aws-load-balancer-manage-backend-security-group-rules: "true"
-    service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "${local.tags_annotation_value}"
-    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "${try(aws_acm_certificate.beta[0].arn, "")}"
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "ssl"
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
 ingress:
   enabled: false
   # spec:
@@ -149,5 +148,5 @@ teleportVersionOverride: ""
 # teleportVersionOverride: "17.0.0-dev"
 imagePullPolicy: Always
 EOF
-  }
+  } : {}
 }

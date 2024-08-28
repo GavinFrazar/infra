@@ -27,11 +27,8 @@ resource "helm_release" "teleport_cluster" {
   # uncomment this to use a local checkout of the helm chart, but avoid doing it
   # because it couples the release to your local git repo's HEAD.
   # chart = pathexpand("~/code/teleport/examples/chart/teleport-cluster")
-  chart = "teleport-cluster"
-  # TODO(gavin): no need for the prefix nor the namespace.
-  # if you redeploy this, change it to just "each.key".
-  # name      = "each.key"
-  name       = "${var.name_prefix}-${each.value}" # release name
+  chart      = "teleport-cluster"
+  name       = each.key
   repository = "https://charts.releases.teleport.dev"
   version    = local.clusters[each.key].helm_chart_version
 

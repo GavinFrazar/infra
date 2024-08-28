@@ -27,10 +27,7 @@ locals {
   }
 
   # --- access controls ---
-  # TODO: move this into the EKS module outputs. Keep both url and domain.
-  eks_oidc_domain = trimprefix(module.eks.oidc_issuer_url, "https://")
-  # TODO: rename this to allow_public_access_from_cidrs
-  public_access_ip_ranges = sensitive([
+  allow_public_access_from_cidrs = toset([
     "${local.my_ip}/32",
   ])
   # These GCP IAM principals can impersonate any IAM principles created.
@@ -47,32 +44,37 @@ locals {
   # The local vars should not be edited because it messes up scripts
   # that depend on defaults.
   ## AWS
-  create_aws_ci_e2e_test         = lookup(var.enabled, "aws_ci_e2e_test", false)
-  create_aws_databases_host      = lookup(var.enabled, "aws_databases_host", false)
-  create_aws_ecr                 = lookup(var.enabled, "aws_ecr", false) || local.create_aws_eks
-  create_aws_eks                 = lookup(var.enabled, "aws_eks", false)
+  create_aws_ci_e2e_test         = lookup(var.enabled.aws, "ci_e2e_test", false)
+  create_aws_databases_host      = lookup(var.enabled.aws, "databases_host", false)
+  create_aws_ecr                 = lookup(var.enabled.aws, "ecr", false) || local.create_aws_eks
+  create_aws_eks                 = lookup(var.enabled.aws, "eks", false)
+  create_aws_eks_addons          = lookup(var.enabled.aws, "eks_addons", false)
   create_aws_key_pair            = local.create_aws_databases_host
-  create_aws_rds_postgres        = lookup(var.enabled, "aws_rds_postgres", false)
-  create_aws_redshift            = lookup(var.enabled, "aws_redshift", false)
-  create_aws_redshift_serverless = lookup(var.enabled, "aws_redshift_serverless", false)
-  create_aws_vpc                 = lookup(var.enabled, "aws_vpc") || local.create_aws_databases_host || local.create_aws_eks
+  create_aws_rds_postgres        = lookup(var.enabled.aws, "rds_postgres", false)
+  create_aws_redshift            = lookup(var.enabled.aws, "redshift", false)
+  create_aws_redshift_serverless = lookup(var.enabled.aws, "redshift_serverless", false)
+  create_aws_vpc                 = lookup(var.enabled.aws, "vpc") || local.create_aws_databases_host || local.create_aws_eks
 
   ## AWS IAM
-  create_aws_iam_combined                 = true  # TODO: make it a var
-  create_aws_iam_rds                      = true  # TODO: make it a var
-  create_aws_iam_rds_proxy                = false # TODO: make it a var
+  create_aws_iam_combined                 = true
+  create_aws_iam_rds                      = true
+  create_aws_iam_rds_proxy                = true
   create_aws_iam_redshift                 = local.create_aws_redshift || false
   create_aws_iam_redshift_serverless      = local.create_aws_redshift_serverless || false
   create_aws_iam_redshift_serverless_user = local.create_aws_redshift_serverless || false
-  create_aws_iam_tester                   = true # TODO: make it a var
+  create_aws_iam_tester                   = true
 
   ## GCP
-  create_gcp_spanner = lookup(var.enabled, "gcp_spanner", false)
-  create_kube        = lookup(var.enabled, "kube", false)
+  create_gcp_spanner = lookup(var.enabled.gcp, "spanner", false)
+  create_gcp_kube    = lookup(var.enabled.gcp, "kube", false)
 
   ## GCP IAM
   create_gcp_spanner_iam = local.create_gcp_spanner || false
 
   ## Azure
-  create_azure_mysql = lookup(var.enabled, "azure_mysql", false)
+  create_azure_mysql = lookup(var.enabled.azure, "mysql", false)
+
+  ## Misc
+  create_temporal     = false
+  create_teleport_eks = true
 }

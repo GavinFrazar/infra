@@ -17,6 +17,13 @@ variable "create" {
   nullable    = false
 }
 
+variable "create_addons" {
+  description = "Determines whether to create the addon resources (requires kubeconfig)"
+  type        = bool
+  default     = true
+  nullable    = false
+}
+
 variable "name_prefix" {
   description = "The prefix to use for created resource names"
   type        = string

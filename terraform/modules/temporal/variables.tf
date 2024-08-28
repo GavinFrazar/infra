@@ -1,22 +1,30 @@
-variable "ecr_repo" {
-  description = "ECR repo name"
-  type        = string
-}
-
-variable "eks_cluster_name" {
-  description = "EKS cluster name"
-  type        = string
-}
-
 variable "create" {
   description = "Determines whether to create the resources"
   type        = bool
   default     = true
+  nullable    = false
 }
 
 variable "name_prefix" {
   description = "The prefix to use for created resource names"
   type        = string
+  nullable    = false
+}
+
+variable "teleport_cluster_name" {
+  type = string
+}
+
+variable "teleport_cluster_proxy_addr" {
+  type = string
+}
+
+variable "oidc_domain" {
+  type = string
+}
+
+variable "oidc_provider_arn" {
+  type = string
 }
 
 variable "tags" {

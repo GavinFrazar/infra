@@ -1,6 +1,6 @@
 variable "allow_public_access_from_cidrs" {
   description = "IP CIDRs that have access to the databases"
-  type        = list(string)
+  type        = set(string)
   default     = []
   nullable    = false
 }
@@ -22,7 +22,6 @@ variable "db_master_user" {
 variable "name_prefix" {
   description = "The prefix to use for created resource names"
   type        = string
-  nullable    = false
 }
 
 variable "postgres_port" {
@@ -35,7 +34,6 @@ variable "postgres_port" {
 variable "subnet_group_name" {
   description = "Name of DB subnet group. DB instance will be created in the VPC associated with the DB subnet group"
   type        = string
-  nullable    = false
 }
 
 variable "tags" {
@@ -47,5 +45,4 @@ variable "tags" {
 variable "vpc_id" {
   description = "VPC ID"
   type        = string
-  nullable    = false
 }

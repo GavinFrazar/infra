@@ -37,7 +37,7 @@ metadata:
   labels:
     host: "${HOST}"
     env: "dev"
-    auto-db-users: "postgres"
+    engine: "postgres"
 spec:
   protocol: "postgres"
   uri: "${HOST}:5432"
@@ -89,7 +89,7 @@ metadata:
   labels:
     host: "${HOST}"
     env: "dev"
-    auto-db-users: "mongodb"
+    engine: "mongodb"
 spec:
   protocol: "mongodb"
   uri: "${HOST}:27017"

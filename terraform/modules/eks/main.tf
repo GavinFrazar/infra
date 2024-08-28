@@ -2,7 +2,7 @@ module "addons" {
   source = "./modules/addons"
 
   cluster_name      = one(aws_eks_cluster.this[*].id)
-  create            = var.create
+  create            = var.create && var.create_addons
   name_prefix       = var.name_prefix
   oidc_domain       = local.oidc_domain
   oidc_provider_arn = local.oidc_provider_arn
@@ -25,7 +25,7 @@ resource "aws_eks_cluster" "this" {
     "authenticator",
     "scheduler"
   ]
-  name     = "${var.name_prefix}-eks"
+  name     = local.cluster_name
   role_arn = try(aws_iam_role.eks_cluster[0].arn, "")
   tags     = var.tags
   version  = var.cluster_version
@@ -73,11 +73,30 @@ resource "aws_iam_openid_connect_provider" "this" {
 resource "null_resource" "kubeconfig" {
   count = var.create ? 1 : 0
 
-  depends_on = [aws_eks_cluster.this]
+  triggers = {
+    cluster_id = try(aws_eks_cluster.this[0].id, "")
+  }
+
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
-    command     = "aws eks update-kubeconfig --name ${try(aws_eks_cluster.this[0].id, "")} --region ${try(data.aws_region.current[0].name, "")} "
+    command     = <<EOF
+set -e
+echo 'Updating ~/.kube/config'
+aws eks wait cluster-active \
+  --name '${local.cluster_name}' \
+  --profile '${local.aws_profile}' \
+  --region '${local.region}'
+aws eks update-kubeconfig \
+  --name '${local.cluster_name}' \
+  --profile '${local.aws_profile}' \
+  --region '${local.region}' \
+  --alias '${local.cluster_name}'
+EOF
   }
+
+  depends_on = [
+    aws_eks_cluster.this
+  ]
 }
 
 resource "aws_eks_access_entry" "cluster_admin" {
@@ -161,9 +180,9 @@ resource "aws_eks_node_group" "this" {
   }
 
   scaling_config {
-    desired_size = 1
-    max_size     = 3
-    min_size     = 1
+    desired_size = length(var.subnet_ids)
+    max_size     = 7
+    min_size     = length(var.subnet_ids)
   }
 
   update_config {

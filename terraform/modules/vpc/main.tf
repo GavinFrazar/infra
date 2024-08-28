@@ -3,7 +3,7 @@ module "this" {
   source     = "terraform-aws-modules/vpc/aws"
   version    = "~> 5.0"
 
-  azs                           = var.az_names
+  azs                           = local.azs
   cidr                          = var.vpc_cidr
   create_igw                    = true # create internet gateway and routes to it from public subnets.
   enable_dns_hostnames          = true
@@ -16,15 +16,15 @@ module "this" {
   name                          = "${var.namespace}-vpc"
   public_dedicated_network_acl  = true
   public_subnet_tags            = { "kubernetes.io/role/elb" = "1" }
-  public_subnets                = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i)]
+  public_subnets                = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, local.prefix_ext, i + 0 * local.subnet_cidr_gap)]
   private_dedicated_network_acl = true
-  private_subnets               = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i + length(var.az_names))]
+  private_subnets               = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, local.prefix_ext, i + 1 * local.subnet_cidr_gap)]
   private_subnet_tags           = { "kubernetes.io/role/internal-elb" = "1" }
-  single_nat_gateway = true
+  single_nat_gateway            = true
 
   # set up database intra VPC subnets:
-  database_subnets                       = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i + 2 * length(var.az_names))]
-  intra_subnets                          = [for i, _ in var.az_names : cidrsubnet(var.vpc_cidr, 4, i + 3 * length(var.az_names))]
+  database_subnets                       = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, local.prefix_ext, i + 2 * local.subnet_cidr_gap)]
+  intra_subnets                          = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, local.prefix_ext, i + 3 * local.subnet_cidr_gap)]
   create_database_internet_gateway_route = false
   create_database_nat_gateway_route      = true
   create_database_subnet_group           = true

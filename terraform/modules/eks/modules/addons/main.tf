@@ -43,47 +43,22 @@ resource "helm_release" "aws_lb_controller" {
   # waits for all deployed resources to be in a ready state (the default).
   wait = true
 
-  set {
-    name  = "clusterName"
-    value = var.cluster_name
-  }
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-  set {
-    name  = "serviceAccount.name"
-    value = local.alb_sa_name
-  }
-  set {
-    name  = "region"
-    value = try(data.aws_region.current[0].name, "")
-  }
-  set {
-    name  = "vpcId"
-    value = var.vpc_id
-  }
+  values = [
+    <<EOF
+clusterName: "${var.cluster_name}"
+region: "${try(data.aws_region.current[0].name, "")}"
+serviceAccount:
+  create: true
+  name: "${local.alb_sa_name}"
+  annotations:
+    "eks.amazonaws.com/role-arn": "${module.lb_controller_irsa.role.arn}"
+vpcId: "${var.vpc_id}"
+EOF
+  ]
 
   depends_on = [
     aws_iam_role_policy_attachment.lb_controller_irsa,
-    kubernetes_service_account.aws_load_balancer_controller,
   ]
-}
-
-resource "kubernetes_service_account" "aws_load_balancer_controller" {
-  count = var.create ? 1 : 0
-
-  metadata {
-    name      = local.alb_sa_name
-    namespace = "kube-system"
-    labels = {
-      "app.kubernetes.io/component" = "controller"
-      "app.kubernetes.io/name"      = local.alb_sa_name
-    }
-    annotations = {
-      "eks.amazonaws.com/role-arn" = module.lb_controller_irsa.role.arn
-    }
-  }
 }
 
 module "lb_controller_irsa" {

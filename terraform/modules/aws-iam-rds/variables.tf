@@ -6,13 +6,13 @@ variable "create" {
 }
 
 variable "aws_account_id" {
-  type        = string
-  nullable    = false
+  type     = string
+  nullable = false
 }
 
 variable "aws_partition" {
-  type        = string
-  nullable    = false
+  type     = string
+  nullable = false
 }
 
 variable "namespace" {

@@ -18,7 +18,7 @@ module "aws_iam_tester" {
 module "aws_rds_postgres" {
   source = "./modules/aws-rds-postgres"
 
-  allow_public_access_from_cidrs = local.public_access_ip_ranges
+  allow_public_access_from_cidrs = local.allow_public_access_from_cidrs
   create                         = local.create_aws_rds_postgres
   name_prefix                    = local.namespace
   subnet_group_name              = module.vpc.database_subnet_group_name
@@ -104,7 +104,7 @@ module "aws_ci_e2e_test" {
   source = "./modules/aws-ci-e2e-test"
 
   create                  = local.create_aws_ci_e2e_test
-  public_access_ip_ranges = local.public_access_ip_ranges
+  public_access_ip_ranges = local.allow_public_access_from_cidrs
   # Trust these roles to assume the pseudo gha role, i.e. you still have to
   # chain roles. This way when I test changes I can't forget to update the
   # gha role permissions.
@@ -117,18 +117,20 @@ module "vpc" {
   az_names  = data.aws_availability_zones.this.names
   create    = local.create_aws_vpc
   namespace = local.namespace
-  vpc_cidr  = "192.168.0.0/20"
+  vpc_cidr  = "192.168.0.0/16"
 }
 
 module "eks" {
-  create = local.create_aws_eks
   source = "./modules/eks"
+
+  create        = local.create_aws_eks
+  create_addons = local.create_aws_eks_addons
 
   # give myself cluster admin.
   cluster_admin_arns      = [local.federated_role_arns.teleport_dev_2]
   cluster_version         = "1.29"
   name_prefix             = local.namespace
-  public_access_ip_ranges = concat(local.public_access_ip_ranges, ["0.0.0.0/0"])
+  public_access_ip_ranges = local.allow_public_access_from_cidrs
   subnet_ids              = module.vpc.public_subnets
   vpc_id                  = module.vpc.id
   # pass tags because the default provider tags aren't propagated to all
@@ -146,8 +148,7 @@ module "aws_ecr" {
 module "teleport_eks" {
   source = "./modules/teleport-eks"
 
-  // TODO(gavin): add a var for this
-  create           = true
+  create           = local.create_teleport_eks
   ecr_repo         = module.aws_ecr.repository_url
   eks_cluster_name = module.eks.id
   name_prefix      = local.namespace
@@ -157,15 +158,14 @@ module "teleport_eks" {
 module "temporal" {
   source = "./modules/temporal"
 
-  // TODO(gavin): add a var for this
-  create            = true
+  create            = local.create_temporal
   name_prefix       = local.namespace
-  oidc_domain       = local.eks_oidc_domain
+  oidc_domain       = module.eks.oidc_domain
   oidc_provider_arn = module.eks.aws_iam_oidc_provider_arn
-  // TODO(gavin): use a var for this.
-  teleport_cluster_name = "alpha.devteleport.com"
-  // TODO(gavin): use a var for this.
-  teleport_cluster_proxy_addr = "alpha.devteleport.com:443"
+  # teleport_cluster_name       = "alpha.devteleport.com"
+  # teleport_cluster_proxy_addr = "alpha.devteleport.com:443"
+  teleport_cluster_name       = "gavin-leaf.cloud.gravitational.io"
+  teleport_cluster_proxy_addr = "gavin-leaf.cloud.gravitational.io:443"
 }
 
 ## ec2 instance and networking for running self-hosted databases in docker,
@@ -202,7 +202,7 @@ module "gcp_iam_spanner" {
 module "kube" {
   source = "./modules/kube"
 
-  create    = local.create_kube
+  create    = local.create_gcp_kube
   namespace = local.namespace
 
   access_from_ip = local.my_ip

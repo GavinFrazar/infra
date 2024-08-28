@@ -29,6 +29,8 @@ data "aws_iam_policy_document" "trust_ebs_csi_addon" {
 }
 
 data "aws_iam_policy_document" "lb_controller" {
+  count = var.create ? 1 : 0
+
   statement {
     actions   = ["iam:CreateServiceLinkedRole"]
     resources = ["*"]
