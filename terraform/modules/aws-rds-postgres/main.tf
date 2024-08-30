@@ -81,10 +81,10 @@ resource "aws_vpc_security_group_egress_rule" "allow_ecr" {
   count = var.create ? 1 : 0
 
   cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 443
-  ip_protocol       = "tcp"
+  from_port         = "-1"
+  ip_protocol       = "-1"
   security_group_id = one(aws_security_group.compute[*].id)
-  to_port           = 443
+  to_port           = "-1"
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_postgres" {
