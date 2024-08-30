@@ -8,7 +8,7 @@ module "postgres" {
   manage_master_user_password = true
   # We need IAM auth enabled at deploy time so we can create an IAM enabled
   # database user.
-  iam_database_authentication_enabled = false
+  iam_database_authentication_enabled = true
 
   engine               = "postgres"
   engine_version       = "14"
