@@ -13,3 +13,4 @@ databases/teleport.yaml
 **/*.cas
 **/*.crt
 **/*.key
+**/*.tfvars

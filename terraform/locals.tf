@@ -27,6 +27,8 @@ locals {
   }
 
   # --- access controls ---
+  allow_public_db_access  = true
+  allow_public_eks_access = false // TODO: this isn't doing anything yet.
   allow_public_access_from_cidrs = toset([
     "${local.my_ip}/32",
   ])
@@ -44,16 +46,16 @@ locals {
   # The local vars should not be edited because it messes up scripts
   # that depend on defaults.
   ## AWS
-  create_aws_ci_e2e_test         = lookup(var.enabled.aws, "ci_e2e_test", false)
-  create_aws_databases_host      = lookup(var.enabled.aws, "databases_host", false)
-  create_aws_ecr                 = lookup(var.enabled.aws, "ecr", false) || local.create_aws_eks
-  create_aws_eks                 = lookup(var.enabled.aws, "eks", false)
-  create_aws_eks_addons          = lookup(var.enabled.aws, "eks_addons", false)
-  create_aws_key_pair            = local.create_aws_databases_host
-  create_aws_rds_postgres        = lookup(var.enabled.aws, "rds_postgres", false)
-  create_aws_redshift            = lookup(var.enabled.aws, "redshift", false)
-  create_aws_redshift_serverless = lookup(var.enabled.aws, "redshift_serverless", false)
-  create_aws_vpc                 = lookup(var.enabled.aws, "vpc") || local.create_aws_databases_host || local.create_aws_eks
+  create_aws_ci_e2e_test         = var.create_aws_ci_e2e_test
+  create_aws_databases_host      = var.create_aws_databases_host
+  create_aws_ecr                 = var.create_aws_ecr || local.create_aws_eks
+  create_aws_eks                 = var.create_aws_eks
+  create_aws_eks_addons          = var.create_aws_eks_addons
+  create_aws_key_pair            = var.create_aws_key_pair || local.create_aws_databases_host
+  create_aws_rds_postgres        = var.create_aws_rds_postgres
+  create_aws_redshift            = var.create_aws_redshift
+  create_aws_redshift_serverless = var.create_aws_redshift_serverless
+  create_aws_vpc                 = var.create_aws_vpc || local.create_aws_databases_host || local.create_aws_eks
 
   ## AWS IAM
   create_aws_iam_combined                 = true
@@ -65,14 +67,14 @@ locals {
   create_aws_iam_tester                   = true
 
   ## GCP
-  create_gcp_spanner = lookup(var.enabled.gcp, "spanner", false)
-  create_gcp_kube    = lookup(var.enabled.gcp, "kube", false)
+  create_gcp_spanner = var.create_gcp_spanner
+  create_gcp_kube    = var.create_gcp_kube
 
   ## GCP IAM
   create_gcp_spanner_iam = local.create_gcp_spanner || false
 
   ## Azure
-  create_azure_mysql = lookup(var.enabled.azure, "mysql", false)
+  create_azure_mysql = var.create_azure_mysql
 
   ## Misc
   create_temporal     = false
