@@ -1,3 +1,8 @@
+variable "allow_public_access" {
+  type    = bool
+  default = false
+}
+
 variable "allow_public_access_from_cidrs" {
   description = "IP CIDRs that have access to the databases"
   type        = set(string)

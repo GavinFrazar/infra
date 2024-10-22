@@ -25,8 +25,8 @@ module "this" {
   # set up database intra VPC subnets:
   database_subnets                       = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, local.prefix_ext, i + 2 * local.subnet_cidr_gap)]
   intra_subnets                          = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, local.prefix_ext, i + 3 * local.subnet_cidr_gap)]
-  create_database_internet_gateway_route = false
-  create_database_nat_gateway_route      = true
+  create_database_internet_gateway_route = var.allow_public_db_access
+  create_database_nat_gateway_route      = false
   create_database_subnet_group           = true
   create_database_subnet_route_table     = true
 

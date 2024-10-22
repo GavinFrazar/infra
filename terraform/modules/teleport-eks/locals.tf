@@ -15,7 +15,7 @@ locals {
     for name, _ in local.clusters : name => "${name}.${local.dns_zone}"
   }
   cluster_namespaces = {
-    for name, _ in local.clusters : name => "${name}-cluster"
+    for name, _ in local.clusters : name => "devteleport-com-${name}"
   }
   needs_acm_certs = toset(["alpha", "beta"]) # TODO: provision acm certs using this list of names.
 
@@ -79,12 +79,12 @@ proxy:
       role: "proxy"
 
 enterprise: true
-# enterpriseImage: ${var.ecr_repo}
-enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
+enterpriseImage: ${var.ecr_repo}
+# enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
 # Optional array of imagePullSecrets, to use when pulling from a private registry
 imagePullSecrets: []
-teleportVersionOverride: ""
-# teleportVersionOverride: "17.0.0-dev"
+# teleportVersionOverride: ""
+teleportVersionOverride: "17.0.0-dev"
 imagePullPolicy: Always
 EOF
 

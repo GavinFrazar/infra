@@ -18,6 +18,7 @@ module "aws_iam_tester" {
 module "aws_rds_postgres" {
   source = "./modules/aws-rds-postgres"
 
+  allow_public_access            = local.allow_public_db_access
   allow_public_access_from_cidrs = local.allow_public_access_from_cidrs
   create                         = local.create_aws_rds_postgres
   name_prefix                    = local.namespace
@@ -114,10 +115,11 @@ module "aws_ci_e2e_test" {
 module "vpc" {
   source = "./modules/vpc"
 
-  az_names  = data.aws_availability_zones.this.names
-  create    = local.create_aws_vpc
-  namespace = local.namespace
-  vpc_cidr  = "192.168.0.0/16"
+  allow_public_db_access = local.allow_public_db_access
+  az_names               = data.aws_availability_zones.this.names
+  create                 = local.create_aws_vpc
+  namespace              = local.namespace
+  vpc_cidr               = "192.168.0.0/16"
 }
 
 module "eks" {

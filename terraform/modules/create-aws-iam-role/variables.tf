@@ -29,3 +29,9 @@ variable "trust_policy_principals" {
   default     = []
   nullable    = false
 }
+
+variable "trust_session_tags" {
+  description = "Whether or not trusted principals can pass session tags when assuming this role"
+  type        = bool
+  default     = false
+}

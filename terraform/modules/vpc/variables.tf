@@ -20,6 +20,11 @@ variable "vpc_cidr" {
   }
 }
 
+variable "allow_public_db_access" {
+  type    = bool
+  default = false
+}
+
 variable "az_names" {
   description = "The names of availability zones that the vpc should use"
   type        = list(string)

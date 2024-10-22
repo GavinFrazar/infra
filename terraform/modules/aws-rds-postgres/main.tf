@@ -3,11 +3,9 @@ module "postgres" {
   source  = "terraform-aws-modules/rds/aws"
   version = "~> 6.1"
 
-  identifier                  = "${var.name_prefix}-rds-postgres-instance"
-  username                    = var.db_master_user
-  manage_master_user_password = true
-  # We need IAM auth enabled at deploy time so we can create an IAM enabled
-  # database user.
+  identifier                          = "${var.name_prefix}-rds-postgres-instance"
+  username                            = var.db_master_user
+  manage_master_user_password         = true
   iam_database_authentication_enabled = true
 
   engine               = "postgres"
@@ -47,7 +45,7 @@ resource "aws_security_group" "postgres" {
   vpc_id      = var.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_public" {
+resource "aws_vpc_security_group_ingress_rule" "allow_public_db_access" {
   for_each = var.create ? local.allow_public_access_from_cidrs : []
 
   cidr_ipv4         = each.value
@@ -60,11 +58,13 @@ resource "aws_vpc_security_group_ingress_rule" "allow_public" {
 resource "aws_vpc_security_group_ingress_rule" "allow_compute" {
   count = var.create ? 1 : 0
 
-  from_port                    = var.postgres_port
-  ip_protocol                  = "tcp"
+  from_port   = var.postgres_port
+  ip_protocol = "tcp"
+  # reference SG is referred to in the rule itself.
   referenced_security_group_id = one(aws_security_group.compute[*].id)
-  security_group_id            = one(aws_security_group.postgres[*].id)
-  to_port                      = var.postgres_port
+  # this is the security group to attach the rule to.
+  security_group_id = one(aws_security_group.postgres[*].id)
+  to_port           = var.postgres_port
 }
 
 # -- compute resources security group and rules --
@@ -77,7 +77,7 @@ resource "aws_security_group" "compute" {
   vpc_id      = var.vpc_id
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_ecr" {
+resource "aws_vpc_security_group_egress_rule" "allow_all_egress" {
   count = var.create ? 1 : 0
 
   cidr_ipv4         = "0.0.0.0/0"
@@ -90,9 +90,11 @@ resource "aws_vpc_security_group_egress_rule" "allow_ecr" {
 resource "aws_vpc_security_group_egress_rule" "allow_postgres" {
   count = var.create ? 1 : 0
 
-  from_port                    = var.postgres_port
-  ip_protocol                  = "tcp"
+  from_port   = var.postgres_port
+  ip_protocol = "tcp"
+  # reference SG is referred to in the rule itself.
   referenced_security_group_id = one(aws_security_group.postgres[*].id)
-  security_group_id            = one(aws_security_group.compute[*].id)
-  to_port                      = var.postgres_port
+  # this is the security group to attach the rule to.
+  security_group_id = one(aws_security_group.compute[*].id)
+  to_port           = var.postgres_port
 }
