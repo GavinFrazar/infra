@@ -37,7 +37,7 @@ services:
       - "./certs:/certs:ro"
     command: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
   teleport-db-service:
-    image: "public.ecr.aws/gravitational/teleport-distroless-debug:16.0.4"
+    image: "public.ecr.aws/gravitational/teleport-distroless-debug:16.1.0"
     dns:
       - "1.1.1.1"
     networks:

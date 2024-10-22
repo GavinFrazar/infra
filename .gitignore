@@ -10,3 +10,6 @@ databases/compose.yaml
 databases/config.tar.gz
 databases/teleport.yaml
 **/.log
+**/*.cas
+**/*.crt
+**/*.key

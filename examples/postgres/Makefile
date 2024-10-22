@@ -14,7 +14,7 @@ certs:
 init: static-join-token certs ;
 
 .PHONY: up
-up: init
+up:
 	docker compose up --detach --wait
 
 .PHONY: logs
