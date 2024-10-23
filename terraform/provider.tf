@@ -10,6 +10,10 @@ provider "aws" {
   }
 }
 
+provider "azurerm" {
+  features {}
+}
+
 provider "google" {
   project = "teleport-dev-320620"
   region  = "us-west1"
