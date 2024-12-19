@@ -12,7 +12,7 @@ module "gha_db_admin" {
   create                  = var.create
   description             = "GHA db admin role"
   name                    = "ci-database-e2e-tests-db-admin-access"
-  permissions_policy_arn  = one(aws_iam_policy.gha_db_admin[*].arn)
+  permission_policy_arns  = aws_iam_policy.gha_db_admin[*].arn
   trust_policy_principals = var.gha_db_admin_trusted_role_arns
 }
 
@@ -23,6 +23,6 @@ module "databases_ci" {
   # create                           = var.create
   name_prefix                      = "ci-database-e2e-tests"
   public_access_ip_ranges          = var.public_access_ip_ranges
-  role_trust_policy_principal_arns = [module.gha_db_admin.role_arn]
+  role_trust_policy_principal_arns = [module.gha_db_admin.arn]
   vpc_cidr                         = "10.0.0.0/20"
 }

@@ -1,137 +1,35 @@
-module "tbot_irsa" {
-  create = var.create
-  source = "../eks/modules/serviceaccount"
-
-  role_name         = "${var.name_prefix}-${local.namespace}-${local.tbot_sa_name}"
-  kube_sa           = "${local.namespace}:${local.tbot_sa_name}"
-  oidc_domain       = var.oidc_domain
-  oidc_provider_arn = var.oidc_provider_arn
-  tags              = var.tags
+locals {
+  kube_namespace    = "temporal"
+  tbot_sa_name      = "tbot"
+  tbot_iam_role_arn = module.tbot_temporal_irsa.iam_role_arn
+  # tbot_iam_role_arn = module.tbot_irsa.role.arn
 }
 
-resource "kubernetes_namespace" "this" {
-  count = var.create ? 1 : 0
+module "tbot_temporal_irsa" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
-  metadata {
-    name = local.namespace
-  }
-}
-
-resource "kubernetes_service_account" "tbot" {
-  count = var.create ? 1 : 0
-
-  metadata {
-    name      = local.tbot_sa_name
-    namespace = local.namespace
-    labels = {
-      "app.kubernetes.io/component" = "machine-id"
-      "app.kubernetes.io/name"      = "tbot"
-    }
-    annotations = {
-      "eks.amazonaws.com/role-arn" = module.tbot_irsa.role.arn
+  create_role = var.create
+  oidc_providers = {
+    main = {
+      namespace_service_accounts = ["${local.kube_namespace}:${local.tbot_sa_name}"]
+      provider_arn               = var.oidc_provider_arn
     }
   }
+  role_name = "${local.kube_namespace}-${local.tbot_sa_name}"
 }
 
-resource "kubernetes_role_v1" "secrets_admin" {
-  count = var.create ? 1 : 0
-
-  metadata {
-    name      = "secrets-admin"
-    namespace = local.namespace
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["secrets"]
-    verbs      = ["*"]
-  }
-}
-
-resource "kubernetes_role_binding_v1" "tbot_secrets_admin" {
-  count = var.create ? 1 : 0
-
-  metadata {
-    name      = "tbot-secrets-admin"
-    namespace = local.namespace
-  }
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    name      = try(kubernetes_role_v1.secrets_admin[0].metadata[0].name, "")
-    kind      = "Role"
-  }
-  subject {
-    kind      = "ServiceAccount"
-    name      = try(kubernetes_service_account.tbot[0].metadata[0].name, "")
-    namespace = local.namespace
-  }
-}
-
-resource "kubernetes_manifest" "temporal_cm" {
-  count = var.create ? 1 : 0
-
-  manifest = yamldecode(<<-EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: tbot-config
-  namespace: ${local.namespace}
-data:
-  tbot.yaml: |
-    debug: true
-    version: v2
-    onboarding:
-      join_method: iam
-      token: temporal-bot
-    storage:
-      type: memory
-    proxy_server: ${var.teleport_cluster_proxy_addr}
-    # outputs:
-    # - type: database
-    #   service: gavin-tf-rds-postgres-instance
-    #   database: postgres
-    #   username: teleport-admin
-    #   destination:
-    #     type: kubernetes_secret
-    #     name: db-output
-    services:
-      - type: "database-tunnel"
-        listen: "unix:///tbot-sockets/gavin-tf-rds-postgres-instance.sock"
-        service: gavin-tf-rds-postgres-instance
-        database: postgres
-        username: bot-temporal
-      - type: "database-tunnel"
-        listen: "tcp://localhost:5432"
-        service: gavin-tf-rds-postgres-instance
-        database: postgres
-        username: bot-temporal
-EOF
-  )
-}
-
-# - type: database-tunnel
-#   listen: "tcp://127.0.0.1:15432"
-#   service: gavin-tf-rds-postgres-instance
-#   database: postgres
-#   username: teleport-admin # change this to a lesser user. Can it be removed for auto users?
-
-# - type: database
-#   destination:
-#     type: directory
-#     path: /opt/machine-id
-#   service: gavin-tf-rds-postgres-instance
-#   database: postgres
-#   username: teleport-admin # change this to a lesser user. Can it be removed for auto users?
-
+# unused: only needed this to test connectivity without doing a full temporal
+# rollout.
 resource "kubernetes_manifest" "temporal_deployment" {
-  count = var.create ? 1 : 0
+  # TODO: set to 0.
+  count = var.create ? 0 : 0
 
   manifest = yamldecode(<<-EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: temporal
-  namespace: ${local.namespace}
+  namespace: ${local.kube_namespace}
 spec:
   replicas: 1
   strategy:
@@ -157,72 +55,140 @@ spec:
           image: postgres:16
           command: ["/bin/sh", "-c", "while true; do sleep 100; done"]
           volumeMounts:
-            - name: "tbot-sockets"
-              mountPath: "/tbot-sockets"
+            - name: "tbot-socket"
+              mountPath: "/tbot-socket"
         - name: tbot
-          image: public.ecr.aws/gravitational/tbot-distroless:16.0.4
+          image: public.ecr.aws/gravitational/tbot-distroless:16.3.0
           args:
             - start
             - -c
             - /config/tbot.yaml
-          env:
-            # POD_NAMESPACE is required for the kubernetes_secret` destination
-            # type to work correctly.
-            - name: POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
           volumeMounts:
             - mountPath: /config
               name: config
-            - name: "tbot-sockets"
-              mountPath: "/tbot-sockets"
+            - name: "tbot-socket"
+              mountPath: "/tbot-socket"
       serviceAccountName: ${local.tbot_sa_name}
       volumes:
         - name: config
           configMap:
-            name: tbot-config
-        # - name: "db-output"
-        #   secret:
-        #     secretName: "db-output"
-        - name: "tbot-sockets"
+            name: tbot
+        - name: "tbot-socket"
           emptyDir: {}
 EOF
   )
 }
 
+# unused: the helm chart can do this, only used to test without temporal rollout.
+resource "kubernetes_service_account" "tbot" {
+  # TODO: set to 0.
+  count = var.create ? 0 : 0
 
-#             # KUBERNETES_TOKEN_PATH specifies the path to the service account
-#             # JWT to use for joining.
-#             # This path is based on the configuration of the volume and
-#             # volumeMount.
-#             # TODO: uncomment this env var when joining with kube join token
-#             - name: KUBERNETES_TOKEN_PATH
-#               value: /var/run/secrets/tokens/join-sa-token
-#           volumeMounts:
-#             - mountPath: /config
-#               name: config
-#             - mountPath: /var/run/secrets/tokens
-#               name: join-sa-token
-#       serviceAccountName: ${local.tbot_sa_name}
-#       volumes:
-#         - name: db-output
-#           secret:
-#             secretName: db-output
-#         - name: config
-#           configMap:
-#             name: tbot-config
-#         - name: join-sa-token
-#           projected:
-#             sources:
-#               - serviceAccountToken:
-#                   path: join-sa-token
-#                   # 600 seconds is the minimum that Kubernetes supports. We
-#                   # recommend this value is used.
-#                   expirationSeconds: 600
-#                   # must be replaced with the name of your teleport cluster,
-#                   # e.g. "example.teleport.sh".
-#                   audience: ${var.teleport_cluster_name}
-# EOF
-#   )
-# }
+  metadata {
+    name      = local.tbot_sa_name
+    namespace = local.kube_namespace
+    labels = {
+      "app.kubernetes.io/component" = "machine-id"
+      "app.kubernetes.io/name"      = "tbot"
+    }
+    annotations = {
+      "eks.amazonaws.com/role-arn" = local.tbot_iam_role_arn
+    }
+  }
+}
+
+# unused: I will create the namespace with a plain manifest with kubectl.
+resource "kubernetes_namespace" "this" {
+  count = var.create ? 0 : 0
+
+  metadata {
+    name = local.kube_namespace
+  }
+}
+
+# unused: I will apply this configmap as a plain manifest with kubectl.
+resource "kubernetes_manifest" "temporal_cm" {
+  count = var.create ? 0 : 0
+
+  manifest = yamldecode(<<-EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tbot
+  namespace: ${local.kube_namespace}
+data:
+  tbot.yaml: |
+    version: v2
+    debug: true
+    onboarding:
+      join_method: iam
+      token: temporal-bot
+    storage:
+      type: memory
+    proxy_server: ${var.teleport_cluster_proxy_addr}
+    services:
+      - type: "database-tunnel"
+        listen: "unix:///tbot-socket/gavin-tf-rds-postgres-instance.sock"
+        service: gavin-tf-rds-postgres-instance
+        database: postgres
+        username: temporal
+      - type: "database-tunnel"
+        listen: "tcp://localhost:5432"
+        service: gavin-tf-rds-postgres-instance
+        database: postgres
+        username: temporal
+EOF
+  )
+}
+
+
+# unused: we dont need to grant secrets permissions since tbot isnt configured
+# to create secrets.
+resource "kubernetes_role_v1" "secrets_admin" {
+  count = var.create ? 0 : 0
+
+  metadata {
+    name      = "secrets-admin"
+    namespace = local.kube_namespace
+  }
+
+  rule {
+    api_groups = [""]
+    resources  = ["secrets"]
+    verbs      = ["*"]
+  }
+}
+
+# unused: we dont need to grant secrets permissions since tbot isnt configured
+# to create secrets.
+resource "kubernetes_role_binding_v1" "tbot_secrets_admin" {
+  count = var.create ? 0 : 0
+
+  metadata {
+    name      = "tbot-secrets-admin"
+    namespace = local.kube_namespace
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    name      = try(kubernetes_role_v1.secrets_admin[0].metadata[0].name, "")
+    kind      = "Role"
+  }
+  subject {
+    kind      = "ServiceAccount"
+    name      = try(kubernetes_service_account.tbot[0].metadata[0].name, "")
+    namespace = local.kube_namespace
+  }
+}
+
+# unused: while I prefer my own modules, I need something I can easily show in a
+# blog post.
+module "tbot_irsa" {
+  create = false # var.create
+  source = "../eks/modules/serviceaccount"
+
+  role_name         = "${var.name_prefix}-${local.kube_namespace}-${local.tbot_sa_name}"
+  kube_sa           = "${local.kube_namespace}:${local.tbot_sa_name}"
+  oidc_domain       = var.oidc_domain
+  oidc_provider_arn = var.oidc_provider_arn
+  tags              = var.tags
+}

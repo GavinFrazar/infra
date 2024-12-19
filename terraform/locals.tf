@@ -13,6 +13,8 @@ locals {
   aws_default_tags = merge(local.default_tags, {
     "teleport.dev/creator" = "gavin.frazar@goteleport.com"
   })
+  azure_default_tags = merge(local.default_tags, {
+  })
   gcp_default_tags = merge(local.default_tags, {
   })
   db_admin_tag = {
@@ -26,8 +28,24 @@ locals {
     teleport_dev_2 = "arn:aws:iam::651149123960:role/aws-reserved/sso.amazonaws.com/us-west-2/AWSReservedSSO_AWSAdministratorAccess_5b57a14d5c6ff9fb"
   }
 
+  # --- my Teleport clusters ---
+  cluster_domains = [
+    "alpha.devteleport.com",
+    "beta.devteleport.com",
+    "gavin-leaf.cloud.gravitational.io",
+    "gavin-test.trunk.cloud.teleportinfra.dev",
+    "mars.internal"
+  ]
+  clusters = [
+    for d in local.cluster_domains :
+    {
+      name   = replace(d, ".", "-")
+      domain = d
+    }
+  ]
+
   # --- access controls ---
-  allow_public_db_access  = true
+  allow_public_db_access  = false
   allow_public_eks_access = false // TODO: this isn't doing anything yet.
   allow_public_access_from_cidrs = toset([
     "${local.my_ip}/32",
@@ -58,25 +76,28 @@ locals {
   create_aws_vpc                 = var.create_aws_vpc || local.create_aws_databases_host || local.create_aws_eks
 
   ## AWS IAM
-  create_aws_iam_combined                 = true
-  create_aws_iam_rds                      = true
-  create_aws_iam_rds_proxy                = true
-  create_aws_iam_redshift                 = local.create_aws_redshift || false
-  create_aws_iam_redshift_serverless      = local.create_aws_redshift_serverless || false
-  create_aws_iam_redshift_serverless_user = local.create_aws_redshift_serverless || false
-  create_aws_iam_tester                   = true
+  create_aws_iam_roles                    = var.create_aws_iam_roles
+  create_aws_iam_redshift_serverless_user = local.create_aws_redshift_serverless
 
   ## GCP
   create_gcp_spanner = var.create_gcp_spanner
   create_gcp_kube    = var.create_gcp_kube
 
   ## GCP IAM
-  create_gcp_spanner_iam = local.create_gcp_spanner || false
+  create_gcp_spanner_iam = local.create_gcp_spanner_iam || var.create_gcp_spanner
 
   ## Azure
   create_azure_mysql = var.create_azure_mysql
+  create_azure_vm    = var.create_azure_vm
 
   ## Misc
   create_temporal     = false
   create_teleport_eks = true
+
+  # --- misc ---
+  gcp_project = {
+    id     = data.google_project.this.project_id,
+    name   = data.google_project.this.name,
+    number = data.google_project.this.number,
+  }
 }

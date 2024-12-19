@@ -1,0 +1,73 @@
+serviceAccount:
+  create: true
+  name: "tbot"
+  extraAnnotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::651149123960:role/temporal-tbot"
+
+server:
+  replicaCount: 1
+  config:
+    logLevel: "debug,info"
+    persistence:
+      default:
+        driver: "sql"
+        sql:
+          driver: "postgres12"
+          host: "localhost"
+          port: 5432
+          database: "temporal"
+          user: "bot-temporal"
+          password: "unused"
+          maxConns: 20
+          maxConnLifetime: "1h"
+          tls:
+            enabled: false
+      visibility:
+        driver: "sql"
+        sql:
+          driver: "postgres12"
+          host: "localhost"
+          port: 5432
+          database: "temporal_visibility"
+          user: "bot-temporal"
+          password: "unused"
+          maxConns: 20
+          maxConnLifetime: "1h"
+          tls:
+            enabled: false
+  additionalVolumes:
+    - name: "tbot-config"
+      configMap:
+        name: "tbot"
+  sidecarContainers:
+    - name: "tbot"
+      image: "public.ecr.aws/gravitational/tbot-distroless:16.3.0"
+      args:
+        - "start"
+        - "-c"
+        - "/config/tbot.yaml"
+      securityContext:
+        runAsNonRoot: true
+      volumeMounts:
+        - name: "tbot-config"
+          mountPath: "/config"
+
+postgresql:
+  enabled: true
+prometheus:
+  enabled: true
+grafana:
+  enabled: true
+cassandra:
+  enabled: false
+mysql:
+  enabled: false
+elasticsearch:
+  enabled: false
+schema:
+  createDatabase:
+    enabled: false
+  setup:
+    enabled: false
+  update:
+    enabled: false

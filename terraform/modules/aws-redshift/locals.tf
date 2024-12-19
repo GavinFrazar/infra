@@ -7,4 +7,5 @@ locals {
     ? var.allow_public_access_from_cidrs
     : toset([])
   )
+  port = var.port
 }

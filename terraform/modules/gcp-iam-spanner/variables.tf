@@ -22,3 +22,12 @@ variable "trusted_impersonators" {
   type        = list(string)
   nullable    = false
 }
+
+variable "project" {
+  type = object({
+    id     = string
+    name   = string
+    number = string
+  })
+  nullable = false
+}

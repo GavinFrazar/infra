@@ -16,7 +16,7 @@ $(NODES_BUILD): | $(BUILD)
 
 $(NODES_CERTS): PREFIX:=$(NODES_BUILD_PREFIX)
 $(NODES_CERTS): NODE=$(patsubst $(PREFIX)%/certs,%,$@)
-$(NODES_CERTS): NODE_NAME=redis-node-$(NODE_NUM)
+$(NODES_CERTS): NODE_NAME=redis-node-$(NODE)
 $(NODES_CERTS): SANS=$(HOST),$(NODE_NAME),localhost,127.0.0.1
 $(NODES_CERTS): $(BUILD)/rootca | $(NODES_BUILD)
 	@mkdir -p $@

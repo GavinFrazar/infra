@@ -1,0 +1,55 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RDSAccess",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances",
+        "rds:DescribeDBClusters",
+        "rds:ModifyDBInstance",
+        "rds:ModifyDBCluster",
+        "rds:DescribeDBProxies",
+        "rds:DescribeDBProxyEndpoints",
+        "rds-db:connect"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "RedshiftAccess",
+      "Effect": "Allow",
+      "Action": ["redshift:DescribeClusters", "redshift:GetClusterCredentials"],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "RedshiftServerlessAccess",
+      "Effect": "Allow",
+      "Action": [
+        "redshift-serverless:GetWorkgroup",
+        "redshift-serverless:GetEndpointAccess",
+        "redshift-serverless:GetCredentials"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "ElastiCacheAccess",
+      "Effect": "Allow",
+      "Action": [
+        "elasticache:DescribeReplicationGroups",
+        "elasticache:DescribeUsers",
+        "elasticache:Connect"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "MemoryDBAccess",
+      "Effect": "Allow",
+      "Action": [
+        "memorydb:DescribeSubnetGroups",
+        "memorydb:DescribeUsers",
+        "memorydb:Connect"
+      ],
+      "Resource": ["*"]
+    }
+  ]
+}

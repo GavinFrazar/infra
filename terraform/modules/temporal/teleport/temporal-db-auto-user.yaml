@@ -1,0 +1,17 @@
+kind: role
+version: v7
+metadata:
+  name: temporal-db-auto-user
+spec:
+  allow:
+    db_labels:
+      engine: "postgres"
+      teleport.dev/cloud: "AWS"
+    # db_names is a list of postgres databases that can be connected to.
+    db_names:
+      - "{{internal.db_names}}"
+    # db_roles is a list of roles the database user will be assigned
+    db_roles:
+      - "{{internal.db_roles}}"
+  options:
+    create_db_user_mode: "keep"

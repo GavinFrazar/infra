@@ -1,0 +1,123 @@
+---
+roles: "kube,app,discovery,db"
+proxyAddr: "gavin-leaf.cloud.gravitational.io:443"
+enterprise: true
+joinParams:
+  method: "gcp"
+  tokenName: "gcp"
+kubeClusterName: "gavin-1-gke"
+
+apps: []
+appResources:
+  - labels:
+      "host": "gke"
+      "env": "dev"
+databaseResources:
+  - labels:
+      "host": "gke"
+      "env": "dev"
+kubernetesDiscovery:
+  - types: ["app"]
+    namespaces: ["*"]
+    labels:
+      "*": "*"
+
+# clusterDomain(string) -- sets the domain name used by the Kubernetes cluster. This value is used to build the
+# FQDN application URIs. For example, if the cluster domain is `anything.local`, the agent will proxy the application
+# `myapp` running in the `default` namespace at `http://myapp.default.svc.anything.local`. You must manually set this value
+# to match your cluster domain if it is different from the default value `cluster.local`.
+clusterDomain: "cluster.local"
+
+# adminClusterRoleBinding -- optionally creates a cluster admin role binding.
+# This is useful for granting cluster admin permissions to a Kubernetes Group
+# other than the default `system:masters` group.
+#
+# GKE Autopilot clusters forbid using the `system:masters` group for impersonation
+# and require a custom group to be used instead.
+adminClusterRoleBinding:
+  # adminClusterRoleBinding.create(bool) -- controls if the chart should create
+  # an additional admin cluster role binding.
+  create: false
+  # adminClusterRoleBinding.name(string) -- is the name of the created admin
+  # cluster role binding.
+  name: "cluster-admin"
+
+# log -- controls the agent logging.
+log:
+  # log.level(string) -- is the log level for the Teleport process.
+  # Available log levels are: `DEBUG`, `INFO`, `WARNING`, `ERROR`.
+  #
+  # The default is `INFO`, which is recommended in production.
+  # `DEBUG` is useful during first-time setup or to see more detailed logs for debugging.
+  level: DEBUG
+  # log.output(string) -- sets the output destination for the Teleport process.
+  # This can be set to any of the built-in values: `stdout`, `stderr` or `syslog`
+  # to use that destination.
+  #
+  # The value can also be set to a file path (such as `/var/log/teleport.log`)
+  # to write logs to a file. Bear in mind that a few service startup messages
+  # will still go to `stderr` for resilience.
+  output: stderr
+  # log.format(string) -- sets the log output format for the Teleport process.
+  # Possible values are `text` (default) or `json`.
+  format: text
+  # log.extraFields(list) -- sets the fields used in logging for the Teleport process.
+  #
+  # See the [Teleport config file reference](../../reference/config.mdx) for
+  # more details on possible values for `extra_fields`.
+  extraFields: ["timestamp", "level", "component", "caller"]
+
+# extraLabels -- contains additional Kubernetes labels to apply on the resources
+# created by the chart.
+# See [the Kubernetes label documentation
+# ](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+# for more information.
+extraLabels:
+  # extraLabels.clusterRole(object) -- are labels to set on the ClusterRole.
+  clusterRole: {}
+  # extraLabels.clusterRoleBinding(object) -- are labels to set on the ClusterRoleBinding.
+  clusterRoleBinding: {}
+  # extraLabels.role(object) -- are labels to set on the Role.
+  role: {}
+  # extraLabels.roleBinding(object) -- are labels to set on the RoleBinding.
+  roleBinding: {}
+  # extraLabels.config(object) -- are labels to set on the ConfigMap.
+  config: {}
+  # extraLabels.deployment(object) -- are labels to set on the Deployment or StatefulSet.
+  deployment: {}
+  # extraLabels.job(object) -- are labels to set on the post-delete Job created by the chart.
+  job: {}
+  # extraLabels.pod(object) -- are labels to set on the Pods created by the
+  # Deployment, StatefulSet, or Job.
+  pod: {}
+  # extraLabels.podDisruptionBudget(object) -- are labels to set on the podDisruptionBudget.
+  podDisruptionBudget: {}
+  # extraLabels.podSecurityPolicy(object) -- are labels to set on the podSecurityPolicy.
+  podSecurityPolicy: {}
+  # extraLabels.secret(object) -- are labels to set on the Secret.
+  secret: {}
+  # extraLabels.serviceAccount(object) -- are labels to set on the ServiceAccount.
+  serviceAccount: {}
+
+# annotations -- contains annotations to apply to the different Kubernetes
+# objects created by the chart. See [the Kubernetes annotation
+# documentation](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/)
+# for more details.
+annotations:
+  # annotations.config(object) -- contains the Kubernetes annotations
+  # put on the `ConfigMap` resource created by the chart.
+  config: {}
+  # annotations.deployment(object) -- contains the Kubernetes annotations
+  # put on the `Deployment` or `StatefulSet` resource created by the chart.
+  deployment: {}
+  # annotations.pod(object) -- contains the Kubernetes annotations
+  # put on the `Pod` resources created by the chart.
+  pod: {}
+  # annotations.secret(object) -- contains the Kubernetes annotations
+  # put on the `Secret` resource created by the chart.
+  # This has no effect when `joinTokenSecret.create` is `false`.
+  secret: {}
+  # annotations.serviceAccount(object) -- contains the Kubernetes annotations
+  # put on the `ServiceAccount` resource created by the chart.
+  serviceAccount:
+    iam.gke.io/gcp-service-account: "gavin-tf-project-controller@teleport-dev-320620.iam.gserviceaccount.com"

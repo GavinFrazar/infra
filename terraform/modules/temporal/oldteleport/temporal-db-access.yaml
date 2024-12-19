@@ -1,0 +1,15 @@
+kind: role
+version: v6
+metadata:
+  name: temporal-db-access
+spec:
+  allow:
+    db_labels:
+      '*': '*'
+    db_names:
+      - temporal
+    db_users:
+      - temporal
+    rules:
+      - resources: [db_server, db]
+        verbs: [read, list]

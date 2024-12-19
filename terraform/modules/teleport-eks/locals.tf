@@ -3,11 +3,11 @@ locals {
   dns_zone = try(data.aws_route53_zone.this[0].name, "")
   clusters = {
     "alpha" = {
-      helm_chart_version = "16.2.0"
+      helm_chart_version = "16.4.4"
       service_type       = "alb"
     }
     "beta" = {
-      helm_chart_version = "16.2.0"
+      helm_chart_version = "16.4.4"
       service_type       = "nlb"
     }
   }
@@ -28,6 +28,9 @@ locals {
   # hardcoded to a hosted zone in teleport-dev-2 account.
   hosted_zone           = "devteleport.com"
   tags_annotation_value = join(",", [for k, v in var.tags : "${k}=${v}"])
+
+  release_image = "public.ecr.aws/gravitational/teleport-ent-distroless-debug"
+  staging_image = "public.ecr.aws/gravitational-staging/teleport-ent-distroless-debug"
 
   cluster_values = var.create ? {
     "alpha" = <<EOF
@@ -79,12 +82,11 @@ proxy:
       role: "proxy"
 
 enterprise: true
-enterpriseImage: ${var.ecr_repo}
-# enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
+enterpriseImage: ${local.staging_image}
 # Optional array of imagePullSecrets, to use when pulling from a private registry
 imagePullSecrets: []
 # teleportVersionOverride: ""
-teleportVersionOverride: "17.0.0-dev"
+teleportVersionOverride: "17.0.0-alpha.2"
 imagePullPolicy: Always
 EOF
 
@@ -93,16 +95,16 @@ clusterName: ${local.cluster_fqdn["beta"]}
 proxyListenerMode: "multiplex"
 
 # ingress
-# acme: true
-# acmeEmail: "gavin.frazar@goteleport.com"
+acme: false
+acmeEmail: "gavin.frazar@goteleport.com"
 annotations:
   service:
     service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "${local.tags_annotation_value}"
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "ssl"
-    service.beta.kubernetes.io/aws-load-balancer-internal: "false"
     service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "ipv4"
     service.beta.kubernetes.io/aws-load-balancer-manage-backend-security-group-rules: "true"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "${try(aws_acm_certificate.beta[0].arn, "")}"
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
     service.beta.kubernetes.io/aws-load-balancer-type: "external"
@@ -140,12 +142,11 @@ proxy:
       role: "proxy"
 
 enterprise: true
-# enterpriseImage: ${var.ecr_repo}
-enterpriseImage: public.ecr.aws/gravitational/teleport-ent-distroless-debug
+enterpriseImage: ${local.staging_image}
 # Optional array of imagePullSecrets, to use when pulling from a private registry
 imagePullSecrets: []
-teleportVersionOverride: ""
-# teleportVersionOverride: "17.0.0-dev"
+# teleportVersionOverride: ""
+teleportVersionOverride: "17.0.0-alpha.2"
 imagePullPolicy: Always
 EOF
   } : {}

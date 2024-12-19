@@ -5,11 +5,12 @@ resource "aws_iam_role" "this" {
   assume_role_policy   = one(data.aws_iam_policy_document.trust[*].json)
   max_session_duration = 3600
   permissions_boundary = var.permissions_boundary_arn
+  tags                 = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "this" {
-  count = var.create ? 1 : 0
+  count = length(local.permission_policy_arns)
 
   role       = one(aws_iam_role.this[*].name)
-  policy_arn = var.permissions_policy_arn
+  policy_arn = local.permission_policy_arns[count.index]
 }

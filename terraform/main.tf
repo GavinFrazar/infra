@@ -6,11 +6,14 @@ resource "aws_key_pair" "ssh" {
   public_key = local.my_ssh_public_key
 }
 
-module "aws_iam_tester" {
-  source = "./modules/aws-iam-tester"
+## Misc IAM roles
+module "aws_iam_roles" {
+  source = "./modules/aws-iam-roles"
 
-  create                  = local.create_aws_iam_tester
+  clusters                = local.clusters
+  create                  = local.create_aws_iam_roles
   name_prefix             = local.namespace
+  tags                    = local.aws_default_tags
   trust_policy_principals = local.trusted_role_arns
 }
 
@@ -27,49 +30,15 @@ module "aws_rds_postgres" {
   tags                           = merge(local.aws_default_tags, local.db_admin_tag)
 }
 
-module "aws_iam_combined" {
-  source = "./modules/aws-iam-combined"
-
-  create                  = local.create_aws_iam_combined
-  name_prefix             = local.namespace
-  trust_policy_principals = local.trusted_role_arns
-}
-
-module "aws_iam_rds" {
-  source = "./modules/aws-iam-rds"
-
-  create                  = local.create_aws_iam_rds
-  aws_account_id          = data.aws_caller_identity.this.account_id
-  aws_partition           = data.aws_partition.this.partition
-  namespace               = local.namespace
-  trust_policy_principals = local.trusted_role_arns
-}
-
-## RDS Proxy
-module "aws_iam_rds_proxy" {
-  source = "./modules/aws-iam-rds-proxy"
-
-  create                  = local.create_aws_iam_rds_proxy
-  namespace               = local.namespace
-  trust_policy_principals = local.trusted_role_arns
-}
-
 ## Redshift
 module "aws_redshift" {
   source = "./modules/aws-redshift"
 
-  create    = local.create_aws_redshift
-  namespace = local.namespace
-}
-
-module "aws_iam_redshift" {
-  source = "./modules/aws-iam-redshift"
-
-  create                  = local.create_aws_iam_redshift
-  aws_account_id          = data.aws_caller_identity.this.account_id
-  aws_partition           = data.aws_partition.this.partition
-  namespace               = local.namespace
-  trust_policy_principals = local.trusted_role_arns
+  create      = local.create_aws_redshift
+  name_prefix = local.namespace
+  subnet_ids  = module.vpc.database_subnets
+  tags        = local.aws_default_tags
+  vpc_id      = module.vpc.id
 }
 
 ## Redshift (Serverless)
@@ -83,20 +52,12 @@ module "aws_redshift_serverless" {
   subnet_ids         = [null]
 }
 
-module "aws_iam_redshift_serverless" {
-  source = "./modules/aws-iam-redshift-serverless"
-
-  create                  = local.create_aws_iam_redshift_serverless
-  namespace               = local.namespace
-  trust_policy_principals = local.trusted_role_arns
-}
-
 module "aws_iam_redshift_serverless_user" {
   source = "./modules/aws-iam-redshift-serverless-user"
 
   create                  = local.create_aws_iam_redshift_serverless_user
   name                    = "${local.namespace}-redshift-serverless-user"
-  trust_policy_principals = [module.aws_iam_redshift_serverless.access_role_arn]
+  trust_policy_principals = [module.aws_iam_roles.db_access_role.arn]
   workgroup_arns          = [module.aws_redshift_serverless.workgroup_arn]
 }
 
@@ -197,6 +158,7 @@ module "gcp_iam_spanner" {
 
   create                 = local.create_gcp_spanner_iam
   namespace              = local.namespace
+  project                = local.gcp_project
   spanner_instance_names = [module.gcp_spanner.instance_name]
   trusted_impersonators  = local.trusted_impersonators
 }
@@ -216,4 +178,13 @@ module "azure_mysql" {
 
   create    = local.create_azure_mysql
   namespace = local.namespace
+}
+
+module "azure_vm" {
+  source = "./modules/azure/vm"
+
+  allow_public_access_from_cidrs = local.allow_public_access_from_cidrs
+  create                         = local.create_azure_vm
+  name_prefix                    = local.namespace
+  tags                           = local.azure_default_tags
 }

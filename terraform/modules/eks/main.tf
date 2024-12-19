@@ -26,7 +26,7 @@ resource "aws_eks_cluster" "this" {
     "scheduler"
   ]
   name     = local.cluster_name
-  role_arn = try(aws_iam_role.eks_cluster[0].arn, "")
+  role_arn = module.eks_cluster_role.arn
   tags     = var.tags
   version  = var.cluster_version
 
@@ -52,7 +52,7 @@ resource "aws_eks_cluster" "this" {
     aws_iam_role_policy_attachment.worker,
     aws_iam_role_policy_attachment.registry,
     aws_iam_role_policy_attachment.cni,
-    aws_iam_role_policy_attachment.eks_cluster,
+    module.eks_cluster_role
   ]
 }
 
@@ -144,21 +144,24 @@ resource "aws_security_group" "this" {
 }
 
 # setup IAM for the control plane
-resource "aws_iam_role" "eks_cluster" {
-  count = var.create ? 1 : 0
+module "eks_cluster_role" {
+  source = "../create-aws-iam-role"
 
-  name                 = "${var.name_prefix}-eks-cluster"
-  assume_role_policy   = one(data.aws_iam_policy_document.trust_eks[*].json)
-  max_session_duration = 3600
-
-  tags = var.tags
+  create                 = var.create
+  name                   = "${var.name_prefix}-eks-cluster"
+  description            = "EKS cluster role"
+  permission_policy_arns = ["arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"]
+  trust_policy_services  = ["eks"]
 }
 
-resource "aws_iam_role_policy_attachment" "eks_cluster" {
-  count = var.create ? 1 : 0
+moved {
+  from = aws_iam_role.eks_cluster
+  to   = module.eks_cluster_role.aws_iam_role.this
+}
 
-  role       = one(aws_iam_role.eks_cluster[*].name)
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+moved {
+  from = aws_iam_role_policy_attachment.eks_cluster
+  to   = module.eks_cluster_role.aws_iam_role_policy_attachment.this
 }
 
 # setup worker nodes
@@ -180,9 +183,12 @@ resource "aws_eks_node_group" "this" {
   }
 
   scaling_config {
-    desired_size = length(var.subnet_ids)
-    max_size     = 7
-    min_size     = length(var.subnet_ids)
+    # desired_size = length(var.subnet_ids)
+    desired_size = 2
+    # desired_size = 7
+
+    max_size = 7
+    min_size = 0 # length(var.subnet_ids)
   }
 
   update_config {

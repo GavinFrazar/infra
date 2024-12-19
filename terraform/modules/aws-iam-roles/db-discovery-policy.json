@@ -1,0 +1,54 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RDSDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances",
+        "rds:DescribeDBClusters",
+        "rds:DescribeDBProxies",
+        "rds:DescribeDBProxyEndpoints",
+        "rds:ListTagsForResource"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "RedshiftDiscovery",
+      "Effect": "Allow",
+      "Action": ["redshift:DescribeClusters"],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "RedshiftServerlessDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "redshift-serverless:ListWorkgroups",
+        "redshift-serverless:ListEndpointAccess",
+        "redshift-serverless:ListTagsForResource"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "ElastiCacheDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "elasticache:ListTagsForResource",
+        "elasticache:DescribeReplicationGroups",
+        "elasticache:DescribeCacheClusters",
+        "elasticache:DescribeCacheSubnetGroups"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Sid": "MemoryDBDiscovery",
+      "Effect": "Allow",
+      "Action": [
+        "memorydb:ListTags",
+        "memorydb:DescribeClusters",
+        "memorydb:DescribeSubnetGroups"
+      ],
+      "Resource": ["*"]
+    }
+  ]
+}

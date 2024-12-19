@@ -19,15 +19,48 @@ variable "permissions_boundary_arn" {
   default = null
 }
 
-variable "permissions_policy_arn" {
-  type = string
+variable "permission_policy_arns" {
+  type     = list(string)
+  default  = []
+  nullable = false
+}
+
+variable "tags" {
+  description = "A mapping of tags to assign to all resources"
+  type        = map(string)
+  default     = {}
 }
 
 variable "trust_policy_principals" {
-  description = "The ARNs of AWS principals to put in the access/discovery role trust policies."
+  description = "The ARNs of AWS principals to put in the role trust policy."
+  type        = list(string)
+  default     = []
+  nullable    = true
+}
+
+variable "trust_policy_services" {
+  description = "The ARNs of AWS services to put in the role trust policy."
   type        = list(string)
   default     = []
   nullable    = false
+}
+
+variable "trust_policy_oidc_providers" {
+  description = "The ARNs of AWS IAM OIDC providers to put in the role trust policy."
+  type        = list(string)
+  default     = []
+  nullable    = false
+}
+
+variable "trust_policy_oidc_conditions" {
+  description = "The OIDC provider conditions."
+  type = list(object({
+    test     = string
+    variable = string
+    values   = list(string)
+  }))
+  default  = []
+  nullable = false
 }
 
 variable "trust_session_tags" {

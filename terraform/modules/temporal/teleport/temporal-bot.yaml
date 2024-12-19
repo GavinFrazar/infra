@@ -1,0 +1,21 @@
+kind: bot
+version: v1
+metadata:
+  # name is a unique identifier for the bot in the cluster.
+  name: temporal
+spec:
+  # roles is a list of Teleport roles to grant to the bot.
+  roles:
+    - temporal-db-auto-user
+  # traits controls the traits applied to the Bot user. These are fed into the
+  # role templating system and can be used to grant a specific Bot access to
+  # specific resources without the creation of a new role.
+  traits:
+    - name: db_names
+      values:
+        - temporal
+        - temporal_visibility
+    - name: db_roles
+      values:
+        - pg_read_all_data
+        - pg_write_all_data

@@ -1,3 +1,4 @@
+# AWS
 variable "create_aws_ci_e2e_test" {
   type    = bool
   default = false
@@ -19,6 +20,11 @@ variable "create_aws_eks" {
 }
 
 variable "create_aws_eks_addons" {
+  type    = bool
+  default = false
+}
+
+variable "create_aws_iam_roles" {
   type    = bool
   default = false
 }
@@ -48,17 +54,29 @@ variable "create_aws_vpc" {
   default = false
 }
 
+# Azure
+variable "create_azure_mysql" {
+  type    = bool
+  default = false
+}
+
+variable "create_azure_vm" {
+  type    = bool
+  default = false
+}
+
+# GCP
 variable "create_gcp_spanner" {
   type    = bool
   default = false
 }
 
-variable "create_gcp_kube" {
+variable "create_gcp_spanner_iam" {
   type    = bool
   default = false
 }
 
-variable "create_azure_mysql" {
+variable "create_gcp_kube" {
   type    = bool
   default = false
 }

@@ -1,3 +1,38 @@
+module "aurora" {
+  count   = var.create ? 1 : 0
+  source  = "terraform-aws-modules/rds-aurora/aws"
+  version = "9.10.0"
+
+  name                                = "${var.name_prefix}-pg-aurora"
+  master_username                     = var.db_master_user
+  manage_master_user_password         = true
+  iam_database_authentication_enabled = true
+
+  engine         = "aurora-postgresql"
+  engine_version = "14.9"
+  instance_class = "db.t4g.medium"
+  instances = {
+    one = {}
+    two = {}
+  }
+  port                = var.postgres_port
+  publicly_accessible = local.allow_public_access
+
+  db_subnet_group_name   = var.subnet_group_name
+  vpc_security_group_ids = aws_security_group.postgres[*].id
+
+  apply_immediately            = true
+  performance_insights_enabled = false
+  storage_encrypted            = true
+
+  create_cloudwatch_log_group = false
+  create_db_subnet_group      = false
+  create_monitoring_role      = false
+  create_security_group       = false
+
+  tags = var.tags
+}
+
 module "postgres" {
   count   = var.create ? 1 : 0
   source  = "terraform-aws-modules/rds/aws"
@@ -7,11 +42,12 @@ module "postgres" {
   username                            = var.db_master_user
   manage_master_user_password         = true
   iam_database_authentication_enabled = true
+  allow_major_version_upgrade         = true
 
   engine               = "postgres"
-  engine_version       = "14"
-  major_engine_version = "14"         # DB option group
-  family               = "postgres14" # DB parameter group
+  engine_version       = "16"
+  major_engine_version = "16"         # DB option group
+  family               = "postgres16" # DB parameter group
   instance_class       = "db.t4g.small"
 
   storage_type          = "gp3"

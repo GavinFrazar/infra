@@ -6,6 +6,10 @@ output "database_subnet_group_name" {
   value = module.this.database_subnet_group_name
 }
 
+output "database_subnets" {
+  value = module.this.database_subnets
+}
+
 output "private_subnets" {
   value = module.this.private_subnets
 }

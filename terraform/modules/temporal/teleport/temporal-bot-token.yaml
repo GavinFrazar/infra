@@ -1,0 +1,14 @@
+kind: token
+version: v2
+metadata:
+  name: temporal-bot
+spec:
+  roles: [Bot]
+  bot_name: temporal
+  join_method: iam
+  # Restrict the AWS account and (optionally) ARN that can use this token.
+  # This information can be obtained from running the
+  # "aws sts get-caller-identity" command from the CLI.
+  allow:
+    - aws_account: "651149123960"
+      aws_arn: "arn:aws:sts::651149123960:assumed-role/temporal-tbot/*"

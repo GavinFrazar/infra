@@ -1,25 +1,3 @@
-variable "create" {
-  description = "Determines whether to create the vpc."
-  type        = bool
-  default     = true
-}
-
-variable "namespace" {
-  description = "Namespace for resource names."
-  type        = string
-}
-
-variable "vpc_cidr" {
-  description = "CIDR block"
-  type        = string
-  nullable    = false
-
-  validation {
-    condition     = can(cidrnetmask(var.vpc_cidr))
-    error_message = "The value \"${var.vpc_cidr}\" is not a valid IPv4 IP range"
-  }
-}
-
 variable "allow_public_db_access" {
   type    = bool
   default = false
@@ -39,5 +17,27 @@ variable "az_names" {
   validation {
     condition     = length(var.az_names) == 0 || length(var.az_names) == length(distinct(var.az_names))
     error_message = "AZ names must be distinct and unique"
+  }
+}
+
+variable "create" {
+  description = "Determines whether to create the vpc."
+  type        = bool
+  default     = true
+}
+
+variable "namespace" {
+  description = "Namespace for resource names."
+  type        = string
+}
+
+variable "vpc_cidr" {
+  description = "CIDR block"
+  type        = string
+  nullable    = false
+
+  validation {
+    condition     = can(cidrnetmask(var.vpc_cidr))
+    error_message = "The value \"${var.vpc_cidr}\" is not a valid IPv4 IP range"
   }
 }

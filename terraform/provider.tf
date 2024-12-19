@@ -12,6 +12,7 @@ provider "aws" {
 
 provider "azurerm" {
   features {}
+  subscription_id = "060a97ea-3a57-4218-9be5-dba3f19ff2b5"
 }
 
 provider "google" {

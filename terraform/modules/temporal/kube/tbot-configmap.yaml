@@ -1,0 +1,21 @@
+apiVersion: "v1"
+kind: "ConfigMap"
+metadata:
+  name: tbot
+  namespace: temporal
+data:
+  tbot.yaml: |
+    version: v2
+    debug: true
+    onboarding:
+      join_method: iam
+      token: temporal-bot
+    storage:
+      type: memory
+    proxy_server: gavin-leaf.cloud.gravitational.io:443
+    services:
+      - type: "database-tunnel"
+        listen: "tcp://localhost:5432"
+        service: gavin-tf-rds-postgres-instance
+        database: temporal
+        username: bot-temporal

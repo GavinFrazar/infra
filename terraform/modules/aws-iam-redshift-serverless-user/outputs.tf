@@ -1,4 +1,4 @@
-output "role_arn" {
+output "arn" {
   description = "Role ARN for the db user."
-  value       = module.db_user.role_arn
+  value       = module.db_user.arn
 }

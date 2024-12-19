@@ -1,3 +1,3 @@
 output "tbot_role_arn" {
-  value = try(module.tbot_irsa.role.arn, "")
+  value = try(local.tbot_iam_role_arn, "")
 }

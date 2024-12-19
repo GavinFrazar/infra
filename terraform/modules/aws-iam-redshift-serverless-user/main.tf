@@ -8,10 +8,11 @@ resource "aws_iam_policy" "this" {
 }
 
 module "db_user" {
+  source = "../create-aws-iam-role"
+
   create                  = var.create
-  source                  = "../create-aws-iam-role"
   name                    = var.name
   description             = "Redshift Serverless database user"
-  permissions_policy_arn  = one(aws_iam_policy.this[*].arn)
+  permission_policy_arns  = aws_iam_policy.this[*].arn
   trust_policy_principals = var.trust_policy_principals
 }
