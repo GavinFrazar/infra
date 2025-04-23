@@ -21,6 +21,31 @@ resource "kubernetes_secret" "license" {
   depends_on = [kubernetes_namespace.teleport_cluster]
 }
 
+# I do this to enable multiple Teleport cluster chart deployments.
+# This is needed for proxies to join using kubernetes join token.
+# I disable the automatic creation of rbac because the teleport chart does not
+# namespace the ClusterRole it creates, which prevents me from deploying
+# multiple clusters.
+resource "kubernetes_cluster_role_binding" "teleport_auth" {
+  for_each = var.create ? local.cluster_namespaces : {}
+
+  metadata {
+    name = "${each.value}-${local.helm_release_name}-auth"
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "ClusterRole"
+    name      = "system:auth-delegator"
+  }
+
+  subject {
+    kind      = "ServiceAccount"
+    name      = local.service_account_name
+    namespace = each.value
+  }
+}
+
 resource "helm_release" "teleport_cluster" {
   for_each = var.create ? local.cluster_namespaces : {}
 
@@ -28,7 +53,7 @@ resource "helm_release" "teleport_cluster" {
   # because it couples the release to your local git repo's HEAD.
   # chart = pathexpand("~/code/teleport/examples/chart/teleport-cluster")
   chart      = "teleport-cluster"
-  name       = each.key
+  name       = local.helm_release_name
   repository = "https://charts.releases.teleport.dev"
   version    = local.clusters[each.key].helm_chart_version
 
@@ -39,6 +64,7 @@ resource "helm_release" "teleport_cluster" {
   wait            = true # waits for all deployed resources to be in a ready state (the default).
 
   depends_on = [
+    kubernetes_cluster_role_binding.teleport_auth,
     kubernetes_namespace.teleport_cluster,
     kubernetes_secret.license,
   ]

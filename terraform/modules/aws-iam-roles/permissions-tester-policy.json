@@ -24,6 +24,15 @@
                 "rds:DescribeDBInstances"
             ],
             "Resource": "*"
+        },
+        {
+            "Action": [
+                "dax:*"
+            ],
+            "Effect": "Allow",
+            "Resource": [
+                "*"
+            ]
         }
     ]
 }

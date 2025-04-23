@@ -7,12 +7,18 @@ apply:
 	terraform apply
 
 .PHONY: destroy
+destroy:
 	terraform destroy
 
 .PHONY: eks-cluster
 eks-cluster:
 	terraform apply \
 		-target='module.eks.aws_eks_cluster.this[0]'
+
+.PHONY: teleport-eks
+teleport-eks:
+	terraform apply \
+		-target='module.teleport_eks'
 
 .PHONY: aws
 aws:
@@ -24,9 +30,11 @@ aws:
 		-target="module.aws_iam_redshift_serverless_user" \
 		-target="module.aws_ci_e2e_test" \
 		-target="module.aws_ecr" \
-		-target="module.aws_databases_host"
+		-target="module.aws_databases_host" \
+		-target="module.vpc"
 
 .PHONY: azure
+azure:
 	terraform apply \
 		-target='module.azure_vm' \
 		-target='module.azure_mysql'

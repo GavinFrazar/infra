@@ -45,7 +45,7 @@ locals {
   ]
 
   # --- access controls ---
-  allow_public_db_access  = false
+  allow_public_db_access  = true
   allow_public_eks_access = false // TODO: this isn't doing anything yet.
   allow_public_access_from_cidrs = toset([
     "${local.my_ip}/32",
@@ -84,7 +84,7 @@ locals {
   create_gcp_kube    = var.create_gcp_kube
 
   ## GCP IAM
-  create_gcp_spanner_iam = local.create_gcp_spanner_iam || var.create_gcp_spanner
+  create_gcp_spanner_iam = var.create_gcp_spanner_iam || var.create_gcp_spanner
 
   ## Azure
   create_azure_mysql = var.create_azure_mysql

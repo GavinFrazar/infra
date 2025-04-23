@@ -1,5 +1,5 @@
 # Use the official PostgreSQL image as the base image
-FROM postgres:14
+FROM postgres:17
 
 #COPY scripts/ /scripts
 

@@ -9,3 +9,10 @@ spec:
     imagePullPolicy: "Always"
     command: ["/bin/sh"]
     args: ["-c", "while true; do sleep 600; done"]
+    readinessProbe:
+      tcpSocket:
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 3
+      failureThreshold: 1
+      successThreshold: 1

@@ -188,3 +188,4 @@ module "azure_vm" {
   name_prefix                    = local.namespace
   tags                           = local.azure_default_tags
 }
+

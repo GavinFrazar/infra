@@ -89,7 +89,7 @@ logs: compose.yaml
 %-shell: force compose.yaml
 	@$(DOCKER_COMPOSE) exec -it $* bash
 
-%-root-shell: force compose.yaml
+%-shell-root: force compose.yaml
 	@$(DOCKER_COMPOSE) exec -it -u root $* bash
 
 %-run: force compose.yaml

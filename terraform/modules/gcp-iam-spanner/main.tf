@@ -37,6 +37,52 @@ resource "google_service_account" "spanner_role_user" {
 
 # Grant permissions
 
+# Step 1/9. Create a service account for the Teleport Database Service
+resource "google_service_account" "db_agent" {
+  account_id  = "gavin-teleport-db-agent"
+  description = "GCP IAM service account for a Teleport database agent."
+}
+
+# This is a "project" IAM role grant.
+# It grants a role at the project scope.
+# It does not appear possible to grant a role at a more specific scope than
+# "project" (unlike how, for some reason, you can grant IAM roles for GCP Spanner at individual instance scope).
+resource "google_project_iam_member" "allow_db_agent_to_manage_certs" {
+  project = var.project.id
+  role    = "roles/cloudsql.client"
+  member  = google_service_account.db_agent.member
+}
+
+resource "google_project_iam_member" "allow_db_agent_to_describe_users" {
+  project = var.project.id
+  role    = "roles/cloudsql.viewer"
+  member  = google_service_account.db_agent.member
+}
+
+# Step 2/9. Create a service account for a database user.
+resource "google_service_account" "db_user" {
+  account_id  = "gavin-teleport-gcp-sql-user"
+  description = "GCP IAM service account for a GCP SQL database."
+}
+
+resource "google_project_iam_member" "allow_db_user_to_login_to_all_databases" {
+  project = var.project.id
+  role    = "roles/cloudsql.instanceUser"
+  member  = google_service_account.db_user.member
+}
+
+# This is a "service_account" IAM role grant.
+# It grants a role at the service account scope.
+# The db_agent service account only needs to be able to impersonate the db_user
+# service account.
+resource "google_service_account_iam_member" "allow_db_agent_to_impersonate_db_user" {
+  # grant the role at the db_user service account scope.
+  service_account_id = google_service_account.db_user.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  # grant the role to the db_agent service account.
+  member = google_service_account.db_agent.member
+}
+
 resource "google_project_iam_member" "impersonate_all" {
   count = var.create ? 1 : 0
 
